@@ -1,0 +1,13 @@
+Changes
+COPYRIGHT
+Image.pm
+Image.pod
+Image/Common.pm
+Image/Magick.pm
+INSTALL
+Makefile.PL
+MANIFEST
+README
+t/OpenGL-Image.t
+test.png
+META.yml                                 Module meta-data (added by MakeMaker)
