@@ -14,8 +14,11 @@ require Exporter;
 
 use Carp;
 
-use vars qw($VERSION @ISA);
-$VERSION = '0.00_1';
+use vars qw($VERSION $DESCRIPTION @ISA);
+$VERSION = '0.00_2';
+
+$DESCRIPTION = qq
+{Supports optimized internal interfaces to the ImageMagick library.};
 
 use OpenGL(':all');
 use OpenGL::Image::Common;
@@ -59,9 +62,9 @@ use OpenGL::Image::Common;
   # Get native engine object
   # Note: must not change image dimensions
   my $obj = $img->Native;
-  $obj->Quantize();
+  $obj->Quantize() if ($obj);
 
-  # Alternately:
+  # Alternately (Assuming the native engine supports Blur):
   $img->Native->Blur();
 
   # Test if image width is a power of 2
@@ -108,6 +111,9 @@ use OpenGL::Image::Common;
   # Get engine version
   my $ver = OpenGL::Image::THIS_MODULE::EngineVersion();
 
+  # Get engine description
+  my $desc = OpenGL::Image::ENGINE_MODULE::EngineDescription();
+
 
   ##########
   # Methods defined in this module:
@@ -129,7 +135,7 @@ use OpenGL::Image::Common;
   $img->Save('MyImage.png');
 
   # Get image blob.
-  my $blob = $img->GetBlob(type=>'png');
+  my $blob = $img->GetBlob();
 
 =cut
 
@@ -138,7 +144,13 @@ use Image::Magick;
 # Get engine version
 sub EngineVersion
 {
-  return $Image::Magick::VERSION;
+  return $VERSION;
+}
+
+# Get engine description
+sub EngineDescription
+{
+  return $DESCRIPTION;
 }
 
 # Base constructor
@@ -254,7 +266,7 @@ sub init
 
     if ($params->{gl_type})
     {
-      $params->{gl_format} = GL_BGRA;
+      $params->{gl_format} = $params->{endian} ? GL_RGBA : GL_BGRA;
       my $alpha = $img->Get('matte');
       $img->Negate(channel=>'Alpha');
       $params->{alpha} = -1;

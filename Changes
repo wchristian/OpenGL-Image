@@ -1,24 +1,28 @@
-Change List for 0.00_01 - Bob "grafman" Free <bfree@graphcomp.com>
+Change List for 0.00_2 - Bob "grafman" Free <bfree@graphcomp.com>
 ____________________________________________________________
 
-New Changes
+Updated Changes
 
 New Copyright
 
-New Image.pm
+Update Image.pm
 
-New Image.pod
+Updated Image.pod
 
-New Image/Common.PM
+Updated Image/Common.PM
 
-New Image/Magick.pm
+Updated Image/Magick.pm
 
-New INSTALL
+Added Image/Targa.pm
+
+Updated INSTALL
 
 New Makefile.PL
 
-New MANIFEST
+Updated MANIFEST
 
-New README
+Updated README
 
-New t/OpenGL-Image.t
+Updated t/OpenGL-Image.t
+
+New test.png

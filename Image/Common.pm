@@ -15,7 +15,7 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION @ISA);
-$VERSION = '0.00_1';
+$VERSION = '0.00_2';
 
 use OpenGL(':all');
 @ISA = qw(Exporter);
@@ -55,7 +55,7 @@ use OpenGL(':all');
   ##########
   # Optional params:
 
-  # engine - specifies imaging engine; defaults to 'Magick'.
+  # engine - specifies imaging engine; defaults to 'Targa'.
 
 
   ##########
@@ -64,9 +64,9 @@ use OpenGL(':all');
   # Get native engine object
   # Note: must not change image dimensions
   my $obj = $img->Native;
-  $obj->Quantize();
+  $obj->Quantize() if ($obj);
 
-  # Alternately:
+  # Alternately (Assuming the native engine supports Blur):
   $img->Native->Blur();
 
   # Test if image width is a power of 2
@@ -92,7 +92,7 @@ use OpenGL(':all');
   ##########
   # Supported parameters:
 
-  # version  version of the engine
+  # version - version of the engine
   # source - source image, if defined
   # width - width of image in pixels
   # height - height of image in pixels
@@ -114,6 +114,9 @@ use OpenGL(':all');
   # Get engine version
   my $ver = OpenGL::Image::ENGINE_MODULE::EngineVersion();
 
+  # Get engine description
+  my $desc = OpenGL::Image::ENGINE_MODULE::EngineDescription();
+
 
   ##########
   # Methods defined in engine modules:
@@ -131,11 +134,11 @@ use OpenGL(':all');
   # Note: pointer may change after a cache update
   $img->Ptr();
 
-  # Save file - automatically does a Sync before write
+  # Save the image to a PNG file (assuming the native engine supports PNGs).
   $img->Save('MyImage.png');
 
   # Get image blob.
-  my $blob = $img->GetBlob(type=>'png');
+  my $blob = $img->GetBlob();
 
 =cut
 
@@ -211,7 +214,7 @@ sub Get
 # Get normalized pixels
 sub GetPixel
 {
-  my($x,$y,$count) = @_;
+  my($self,$x,$y,$count) = @_;
 
   my $w = $self->{params}->{width};
   my $c = $self->{params}->{components};
@@ -224,14 +227,14 @@ sub GetPixel
   my @pad = ();
   push(@pad,0) if ($c < 2);
   push(@pad,0) if ($c < 3);
-  push(@pad,$n) if ($c < 4);
+  push(@pad,1) if ($c < 4);
 
   my $i = 0;
   my @pixels = ();
   my @data = $self->{oga}->retrieve($pos,$len);
   foreach my $value (@data)
   {
-    push(@pixels,int(.5+$value/$n));
+    push(@pixels,$value/$n);
 
     if ($c < 4)
     {
@@ -246,7 +249,7 @@ sub GetPixel
 # Set normalized pixels
 sub SetPixel
 {
-  my($x,$y,@values) = @_;
+  my($self,$x,$y,@values) = @_;
 
   my $w = $self->{params}->{width};
   my $c = $self->{params}->{components};
@@ -264,7 +267,7 @@ sub SetPixel
       my $e = $i++ % $c;
       next if ($e >= $c-1);
     }
-    push(@pixels,$value*$n);
+    push(@data,int(.5+$value*$n));
   }
   $self->{oga}->assign($pos,@data);
 }

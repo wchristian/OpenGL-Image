@@ -8,8 +8,9 @@
  2. Install a supported imaging library.
 
     At this time, OpenGL::Image supports
-    ImageMagick - version 6.3.5 or newer is recommended:
-    http://www.imagemagick.org/script/perl-magick.php
+    * ImageMagick - version 6.3.5 or newer is recommended:
+      http://www.imagemagick.org/script/perl-magick.php
+    * Targa - uncompressed RGBA files
 
     If you've installed other OpenGL::Image engines, you can define the
     priority of the engines selected by OpenGL::Image by creating a

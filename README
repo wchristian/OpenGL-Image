@@ -6,11 +6,12 @@
 This module provides methods to load/modify/save images for use
 with OpenGL textures, FBOs and VBOs.
 
-It requires OpenGL module - versino 0.56 or newer.
+It requires OpenGL module - version 0.56 or newer.
 
 It also requires a supported OpenGL::Image imaging engine.
-At this time, the ImageMagick library is support.
-For the best performance, version 6.3.5 or new is recommended.
+At this time, the following  drivers are supported:
+* ImageMagick - v6.3.5 or newer is recommended for the best performance.
+* Targa - uncompressed RGBA files
 
 You can find information using this module at the
 Perl OpenGL (POGL) Developer's Site:

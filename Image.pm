@@ -15,7 +15,7 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION @ISA);
-$VERSION = '0.00_1';
+$VERSION = '0.00_2';
 
 use OpenGL;
 @ISA = qw(Exporter);
@@ -57,33 +57,29 @@ use OpenGL;
 
 
   ##########
-  # Load texture (engine defaults to Image::Magick if not specified)
-  my $tex = new OpenGL::Image(engine=>'Magick',source=>'test.png');
+  # Load texture (engine defaults to Image::Targa if not specified)
+  my $tex = new OpenGL::Image(source=>'test.tga');
 
   # Get GL info
   my($ifmt,$fmt,$type) = $tex->Get('gl_internalformat','gl_format','gl_type');
   my($w,$h) = $tex->Get('width','height');
 
-  # Optionally use native APIs
-  # Note: must not change image dimensions
-  $tex->Native->OilPaint();
-
   # Test if power of 2
   if (!$tex->PowerOf2()) return;
 
   # Set texture  
-  glTexImage2D_c(GL_TEXTURE_2D, 0, $ifmt, $w, $h, 0, $fmt, $type, $tex->ptr());
+  glTexImage2D_c(GL_TEXTURE_2D, 0, $ifmt, $w, $h, 0, $fmt, $type, $tex->Ptr());
 
 
   ##########
-  # Modify GL frame
-  my $frame = new OpenGL::Image(width=>$width,height=>$height);
+  # Modify GL frame using ImageMagick
+  my $frame = new OpenGL::Image(engine=>'Magick',width=>$width,height=>$height);
 
   # Get default GL info
   my($def_fmt,$def_type) = $tex->Get('gl_format','gl_type');
 
   # Read frame pixels
-  glReadPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $frame->ptr());
+  glReadPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $frame->Ptr());
 
   # Sync cache
   $frame->Sync();
@@ -92,7 +88,7 @@ use OpenGL;
   $frame->Native->Blur();
 
   # Draw back to frame
-  glDrawPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $frame->ptr());
+  glDrawPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $frame->Ptr());
 
 
   ##########
@@ -100,10 +96,10 @@ use OpenGL;
   my $image = new OpenGL::Image(width=>$width,height=>$height);
 
   # Read frame pixels
-  glReadPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $image->ptr());
+  glReadPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $image->Ptr());
 
   # Save file - automatically does a Sync before write
-  $image->Save('MyImage.png');
+  $image->Save('MyImage.tga');
 
 
 
@@ -124,9 +120,9 @@ use OpenGL;
 
   # Get native engine object
   my $obj = $img->Native;
-  $obj->Quantize();
+  $obj->Quantize() if ($obj);
 
-  # Alternately:
+  # Alternately (Assuming the native engine supports Blur):
   $img->Native->Blur();
 
   # Test if image width is a power of 2
@@ -177,11 +173,11 @@ use OpenGL;
   # Used by some engines for paged caches; otherwise a NOP.
   $img->Sync();
 
-  # Save the image to a file.
+  # Save the image to a PNG file (assuming the native engine supports PNGs).
   $img->Save('MyImage.png');
 
   # Get image blob.
-  my $blob = $img->GetBlob(type=>'png');
+  my $blob = $img->GetBlob();
 
 
 =cut
@@ -282,13 +278,13 @@ sub new
     return NewEngine($engine,%params);
   }
 
-  my $obj = NewEngine('Magick',%params);
+  my $obj = NewEngine('Targa',%params);
   return $obj if ($obj);
 
   my $engines = GetEngines();
   foreach my $engine (keys(%$engines))
   {
-    next if ($engine eq 'Magick');
+    next if ($engine eq 'Targa');
     $obj = NewEngine($engine,%params);
     return $obj if ($obj);
   }
