@@ -15,10 +15,10 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION @ISA);
-$VERSION = '0.00_2';
+$VERSION = '1.00';
 
-use OpenGL(':all');
 @ISA = qw(Exporter);
+
 
 
 =head1 NAME

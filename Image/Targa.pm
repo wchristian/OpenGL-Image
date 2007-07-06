@@ -15,15 +15,17 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION $DESCRIPTION @ISA);
-$VERSION = '0.00_1';
+$VERSION = '1.00';
 
 $DESCRIPTION = qq
 {Supports uncompressed RGBA files; default engine driver.
 May be used as a prototype for other imaging drivers};
 
-use OpenGL(':all');
 use OpenGL::Image::Common;
 @ISA = qw(Exporter OpenGL::Image::Common);
+
+use OpenGL(':constants');
+
 
 
 =head1 NAME

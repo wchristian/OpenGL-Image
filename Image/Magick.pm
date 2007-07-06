@@ -15,14 +15,16 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION $DESCRIPTION @ISA);
-$VERSION = '0.00_2';
+$VERSION = '1.00';
 
 $DESCRIPTION = qq
 {Supports optimized internal interfaces to the ImageMagick library.};
 
-use OpenGL(':all');
 use OpenGL::Image::Common;
 @ISA = qw(Exporter OpenGL::Image::Common);
+
+use OpenGL(':constants');
+
 
 
 =head1 NAME
@@ -139,12 +141,13 @@ use OpenGL::Image::Common;
 
 =cut
 
-use Image::Magick;
+eval 'use Image::Magick';
+
 
 # Get engine version
 sub EngineVersion
 {
-  return $VERSION;
+  return $Image::Magick::VERSION;
 }
 
 # Get engine description

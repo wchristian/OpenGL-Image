@@ -1,23 +1,32 @@
 #!/usr/bin/perl -w
 use strict;
+use OpenGL(':all');
 
-# Image used for testing
+# Images used for testing
 my $src_image = 'test.png';
 my $dst_image = 'test.jpg';
 my $tga_image = 'test.tga';
 my $width = 128;
 my $height = 128;
-my $deviation = 0.01;
+my $deviation = 0.05;
+
 
 # Init tests
-my $t = new MyTests(27,'Testing OpenGL::Image');
+my $t = new MyTests(26,'Testing OpenGL::Image');
+
+
+# Get OpenGL version
+my $pogl_ver = $OpenGL::VERSION;
+my $has_pogl5503 = $pogl_ver ge '0.5503';
+$t->status("Using OpenGL v$pogl_ver");
+$t->status("Recommend OpenGL 0.55_03 or newer to use") if (!$has_pogl5503);
 
 
 #1 Get module version
 my $ogi_ver;
 my $exec = qq
 {
-  use OpenGL::Image;
+  use OpenGL\::Image;
   \$ogi_ver = \$OpenGL::Image::VERSION;
 };
 eval($exec);
@@ -25,33 +34,11 @@ $t->bail("OpenGL::Image failed to load: $@") if ($@ || !$ogi_ver);
 $t->ok("OpenGL::Image module loaded: v$ogi_ver");
 
 
-#2 Get OpenGL version
-my $has_pogl = 0;
-my $pogl_ver = 0;
-$exec = qq
-{
-  use OpenGL\(':all');
-  \$pogl_ver = \$OpenGL::VERSION;
-};
-eval($exec);
-$t->status("OpenGL module not installed: $@") if ($@ || !$pogl_ver);
-if ($pogl_ver lt '0.5503')
-{
-  $t->skip("Requires OpenGL 0.55_03 or newer to use");
-}
-else
-{
-  use OpenGL(':all');
-  $has_pogl = 1;
-  $t->ok("OpenGL module installed: v$pogl_ver");
-}
-
-
-#3 Get ImageMagick version
+#2 Get ImageMagick version
 my $im_ver = 0;
 $exec = qq
 {
-  use Image::Magick;
+  use Image\::Magick;
   \$im_ver = \$Image::Magick::VERSION;
 };
 eval($exec);
@@ -69,7 +56,7 @@ else
 }
 
 
-#4 Enumerate installed engines
+#3 Enumerate installed engines
 $t->status("Testing OpenGL::Image::GetEngines():");
 my $engines = OpenGL::Image::GetEngines();
 my @engines = keys(%$engines);
@@ -96,57 +83,26 @@ $t->status('Magick is ' . ($has_IM ? '' : 'NOT ') . "installed");
 $t->ok("At least one imaging engine is installed");
 
 
-#5 Test HasEngine()
+#4 Test HasEngine()
 my $engine_ver = OpenGL::Image::HasEngine($engines[0]);
 $t->bail("HasEngine('$engines[0]') failed to return a version") if (!$engine_ver);
 $t->ok("HasEngine('$engines[0]') returned '$engine_ver'");
 
 
-# Skip the rest if no POGL
-if (!$has_pogl)
-{
-  $t->skip("#6 - No OpenGL");
-  $t->skip("#7 - No OpenGL");
-  $t->skip("#8 - No OpenGL");
-  $t->skip("#9 - No OpenGL");
-  $t->skip("#10 - No OpenGL");
-  $t->skip("#11 - No OpenGL");
-  $t->skip("#12 - No OpenGL");
-  $t->skip("#13 - No OpenGL");
-  $t->skip("#14 - No OpenGL");
-  $t->skip("#15 - No OpenGL");
-  $t->skip("#16 - No OpenGL");
-  $t->skip("#17 - No OpenGL");
-  $t->skip("#18 - No OpenGL");
-  $t->skip("#19 - No OpenGL");
-  $t->skip("#20 - No OpenGL");
-  $t->skip("#21 - No OpenGL");
-  $t->skip("#22 - No OpenGL");
-  $t->skip("#23 - No OpenGL");
-  $t->skip("#24 - No OpenGL");
-  $t->skip("#25 - No OpenGL");
-  $t->skip("#26 - No OpenGL");
-  $t->skip("#27 - No OpenGL");
-
-  $t->done();
-  exit 0;
-}
-
-
-#6 Test OpenGL::Array
-my $oga = OpenGL::Array->new_list(GL_UNSIGNED_BYTE,1,2,3,4);
+#5 Test OpenGL::Array
+my $oga = OpenGL::Array->new_list(OpenGL::GL_UNSIGNED_BYTE,1,2,3,4);
 $t->bail("Unable to instantiate OpenGL::Array") if (!$oga);
 $t->bail("OpenGL::Array returned invalid element count") if (4 != $oga->elements());
 $t->ok("Instantiated OpenGL::Array");
 
 
-#7 Test image object instantiation
+#6 Test image object instantiation
 my $tga = new OpenGL::Image(width=>$width,height=>$height);
 $t->bail("Unable to instantiate OpenGL::Image") if (!$tga);
 $t->ok("Instantiated OpenGL::Image(width\=>$width,height\=>$height)");
 
 
-#8 Test Get/Set Pixel
+#7 Test Get/Set Pixel
 $tga->SetPixel(0,0, 0.1, 0.2, 0.3, 0.4);
 my($v0,$v1,$v2,$v3) = $tga->GetPixel(0,0);
 
@@ -186,20 +142,20 @@ foreach my $pixel (@pixels)
 }
 
 
-#9 Test image saving
+#8 Test image saving
 $tga->Save($tga_image);
 $t->bail("Save('$tga_image') failed to create $tga_image") if (!-e $tga_image);
 $t->ok("Save('$tga_image') created image");
 
 
-#10 Test image loading
+#9 Test image loading
 my $sav = new OpenGL::Image(source=>$tga_image);
 $t->bail("Unable to instantiate OpenGL::Image") if (!$sav);
 $t->ok("Instantiated OpenGL::Image(source=>'$tga_image')");
 unlink($tga_image);
 
 
-#11 Test image parameters
+#10 Test image parameters
 my $params = $sav->Get();
 $t->fail("Get() failed to return a parameter hashref") if (!$params);
 my @params = keys(%$params);
@@ -213,7 +169,7 @@ foreach my $key (sort @params)
 $t->ok("Get() returned parameters");
 
 
-#12 Test image size
+#11 Test image size
 my($w,$h,$p,$c,$s) = $sav->Get('width','height','pixels','components','size');
 if ($w != $width || $h != $height)
 {
@@ -229,7 +185,7 @@ else
 }
 
 
-#13 Test pixel deviation
+#12 Test pixel deviation
 my $d = 0;
 my $i = 0;
 for (my $y=0; $y<$height; $y++)
@@ -260,7 +216,7 @@ else
 }
 
 
-#14 Test IsPowerOf2()
+#13 Test IsPowerOf2()
 if (!$sav->IsPowerOf2(256))
 {
   $t->fail("IsPowerOf2(256) returned false");
@@ -279,7 +235,7 @@ else
 }
 
 
-#15 Test GetArray()
+#14 Test GetArray()
 $oga = $sav->GetArray();
 $t->bail("GetArray() failed to return an OpenGL::Array object") if (!$oga);
 my $elements = $oga->elements();
@@ -290,7 +246,7 @@ if ($elements != $p * $c)
 $t->ok("GetArray() contains $elements elements");
 
 
-#16 Test Ptr()
+#15 Test Ptr()
 if ($oga->ptr() && $oga->ptr() != $sav->Ptr())
 {
   $t->bail("Ptr() returned invalid pointer: ".$oga->ptr().', '.$sav->Ptr())."\n";
@@ -298,7 +254,7 @@ if ($oga->ptr() && $oga->ptr() != $sav->Ptr())
 $t->ok("Ptr() returned a valid pointer");
 
 
-#17 Test GetBlob()
+#16 Test GetBlob()
 my $blob = $sav->GetBlob();
 $t->bail("GetBlob() failed to return blob\n") if (!$blob);
 my $blob_len = length($blob);
@@ -313,35 +269,23 @@ if ('Targa' eq $sav->Get('engine'))
 $t->ok("GetBlob() returned a blob of length: $blob_len");
 
 
-# Test Magick engine
+# Skip the rest if no Magick engine or test image
 my $has_image = -e $src_image;
 if (!$has_IM || !$has_image)
 {
   my $msg = $has_IM ? "Test image '$src_image' not found" : 'No ImageMagick';
-
-  $t->skip("#18 - $msg");
-  $t->skip("#19 - $msg");
-  $t->skip("#20 - $msg");
-  $t->skip("#21 - $msg");
-  $t->skip("#22 - $msg");
-  $t->skip("#23 - $msg");
-  $t->skip("#24 - $msg");
-  $t->skip("#25 - $msg");
-  $t->skip("#26 - $msg");
-  $t->skip("#27 - $msg");
-
-  $t->done();
+  $t->done($msg);
   exit 0;
 }
 
 
-#18 Test Loading source image
+#17 Test Loading source image
 my $src = new OpenGL::Image(engine=>'Magick',source=>$src_image);
 $t->bail("Unable to instantiate OpenGL::Image(engine=>'Magick',source=>'$src_image')") if (!$src);
 $t->ok("Instantiated OpenGL::Image(engine=>'Magick',source=>'$src_image')");
 
 
-#19 Test source image size
+#18 Test source image size
 my($ws,$hs,$ps,$cs,$ss) = $src->Get('width','height','pixels','components','size');
 if ($ws != $width || $hs != $height)
 {
@@ -357,20 +301,20 @@ else
 }
 
 
-#20 Test Save()
+#19 Test Save()
 $src->Save($dst_image);
 $t->bail("Save('$dst_image') failed to create file") if (!-e $dst_image);
 $t->ok("Save('$dst_image') created image");
 
 
-#21 Test Loading destination image
+#20 Test Loading destination image
 my $dst = new OpenGL::Image(engine=>'Magick',source=>$dst_image);
 $t->bail("Unable to instantiate OpenGL::Image(engine=>'Magick',source=>'$dst_image')") if (!$dst);
 $t->ok("Instantiated OpenGL::Image(engine=>'Magick',source=>'$dst_image')");
 unlink($dst_image);
 
 
-#22 Test destination image size
+#21 Test destination image size
 my($wd,$hd,$pd,$cd,$sd) = $dst->Get('width','height','pixels','components','size');
 if ($wd != $ws || $hd != $hs)
 {
@@ -386,7 +330,7 @@ else
 }
 
 
-#23 Test RGB deviation
+#22 Test RGB deviation
 $d = 0;
 for (my $y=0; $y<$height; $y++)
 {
@@ -413,7 +357,7 @@ else
 }
 
 
-#24 Test Native()
+#23 Test Native()
 $t->bail("Native() returned invalid PerlMagick object") if (!$src->Native());
 my($x,$y) = $src->Native->Get('width','height');
 if ($x != $w || $y != $h)
@@ -423,7 +367,7 @@ if ($x != $w || $y != $h)
 $t->ok("Native->Get('width','height') returned: $x x $y");
 
 
-#25 Test GetBlob()
+#24 Test GetBlob()
 $blob = $src->GetBlob(magick=>'jpg');
 $t->bail("GetBlob(type=>'jpg') failed to return a blob") if (!$blob);
 
@@ -441,7 +385,7 @@ elsif ($w != $w0 || $h != $h0)
 $t->ok("GetBlob(type=>'jpg') returned a blob of length: ".length($blob));
 
 
-#26 Test GetArray()
+#25 Test GetArray()
 $oga = $src->GetArray();
 $t->bail("GetArray() failed to return an OpenGL::Array object") if (!$oga);
 $elements = $oga->elements();
@@ -452,18 +396,12 @@ if ($elements != $p * $c)
 $t->ok("GetArray() contains $elements elements");
 
 
-#27 Test Ptr()
+#26 Test Ptr()
 if ($oga->ptr() && $oga->ptr() != $src->Ptr())
 {
   $t->bail("Ptr() returned invalid pointer: ".$oga->ptr().', '.$src->Ptr())."\n";
 }
 $t->ok("Ptr() returned a valid pointer");
-
-
-# Test IM 6.3.5 APIs
-if (!$has_IM635)
-{
-}
 
 
 $t->done();
@@ -483,6 +421,7 @@ sub new
   bless($self,$class);
 
   my($tests,$title) = @_;
+  $self->{tests} = $tests;
   print "1..$tests\n";
   $self->status("\n________________________________________");
   $self->status($title);
@@ -522,7 +461,13 @@ sub bail
 }
 sub done
 {
-  my($self) = @_;
+  my($self,$msg) = @_;
+
+  for (my $c=$self->{count}; $self->{count} < $self->{tests}; $c++)
+  {
+    $self->skip('#'.($c+1)." - $msg");
+  }
+
   $self->status("________________________________________");
 }
 

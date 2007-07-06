@@ -15,9 +15,8 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION @ISA);
-$VERSION = '0.00_2';
+$VERSION = '1.00';
 
-use OpenGL;
 @ISA = qw(Exporter);
 
 
@@ -238,16 +237,24 @@ sub HasEngine
 
   my $version;
   my $module = GetEngineModule($engine);
+
+  # Redirect Perl errors if module can't be loaded
+  open(OLD_STDERR,">&STDERR");
+  close(STDERR);
+
   my $exec = qq
   {
     use $module;
     \$version = $module\::EngineVersion();
   };
   eval($exec);
-  return undef if ($@);
 
-  return undef if ($min_ver && $version < $min_ver);
-  return undef if ($max_ver && $version > $max_ver);
+  # Restore STDERR
+  open(STDERR,">&OLD_STDERR");
+
+  return undef if (!$version);
+  return undef if ($min_ver && $version lt $min_ver);
+  return undef if ($max_ver && $version gt $max_ver);
 
   return $version;
 }

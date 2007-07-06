@@ -1,26 +1,29 @@
 
  To install the OpenGL::Image modules, please follow these instructions:
 
- 1. Install the OpenGL module first - you need at least version 0.56
+ 1. Install the OpenGL module first - you need at least version 0.55_03
     See the Perl OpenGL (POGL) Developer's Site:
     http://graphcomp.com/opengl
 
- 2. Install a supported imaging library.
+ 2. Optionally install one or more supported imaging library.
+    At this time, OpenGL::Image supports:
 
-    At this time, OpenGL::Image supports
+    * Targa - Pure Perl uncompressed RGBA files (installed with OpenGL::Image)
+
     * ImageMagick - version 6.3.5 or newer is recommended:
       http://www.imagemagick.org/script/perl-magick.php
-    * Targa - uncompressed RGBA files
 
-    If you've installed other OpenGL::Image engines, you can define the
-    priority of the engines selected by OpenGL::Image by creating a
+    If you've installed multiple OpenGL::Image engines, you can define
+    the priority of the engines selected by OpenGL::Image by creating a
     engines.lst file in the OpenGL/Image folder - separate each engine
     name by a newline, with no whitespace.
  
  3. Run 'perl Makefile.PL'
+
+ 4. Run 'make' ('nmake' on Windows).
  
- 4. Run 'make test' ('nmake test' on Windows).
+ 5. Run 'make test' ('nmake test' on Windows).
  
- 5. If all is well, run 'sudo make install' ('nmake install on Windows')
+ 6. If all is well, run 'sudo make install' ('nmake install on Windows')
     to intall the OpenGL::Image modules onto your system.
 
