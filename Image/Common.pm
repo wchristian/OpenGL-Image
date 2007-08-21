@@ -70,10 +70,13 @@ $VERSION = '1.00';
   $img->Native->Blur();
 
   # Test if image width is a power of 2
-  if ($img->IsPowerOf2())
+  if ($img->IsPowerOf2());
 
   # Test if all listed values are a power of 2
-  if ($img->IsPowerOf2(@list))
+  if ($img->IsPowerOf2(@list));
+
+  # Get largest power of 2 size within dimensions of image
+  my $size = $img->GetPowerOf2();
 
   # Get all parameters as a hashref
   my $params = $img->Get();
@@ -194,6 +197,26 @@ sub po2
     $value >>= 1;
   }
   return 0;
+}
+sub GetPowerOf2
+{
+  my($self,@values) = @_;
+
+  if (!scalar(@values))
+  {
+    my $params = $self->{params};
+    return 0 if (!$params->{width} || !$params->{height});
+    @values = ($params->{width},$params->{height});
+  }
+  my($value) = sort(@values);
+
+  my $size = 0;
+  while ($value)
+  {
+    $size++;
+    $value >>= 1;
+  }
+  return $size ? 2**($size-1) : 0;
 }
 
 # Get parameter values

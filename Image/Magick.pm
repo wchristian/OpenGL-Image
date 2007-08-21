@@ -15,7 +15,7 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION $DESCRIPTION @ISA);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 $DESCRIPTION = qq
 {Supports optimized internal interfaces to the ImageMagick library.};
@@ -70,10 +70,13 @@ use OpenGL(':constants');
   $img->Native->Blur();
 
   # Test if image width is a power of 2
-  if ($img->IsPowerOf2())
+  if ($img->IsPowerOf2());
 
   # Test if all listed values are a power of 2
-  if ($img->IsPowerOf2(@list))
+  if ($img->IsPowerOf2(@list));
+
+  # Get largest power of 2 size within dimensions of image
+  my $size = $img->GetPowerOf2();
 
   # Get all parameters as a hashref
   my $params = $img->Get();
@@ -177,7 +180,8 @@ sub new
     my $stat = $img->Read($self->{params}->{source});
     return undef if ($stat);
 
-    ($self->{params}->{width},$self->{params}->{height}) = $img->Get('Width','Height');
+    ($self->{params}->{width},$self->{params}->{height}) =
+      $img->Get('Width','Height');
     return undef if (!$self->{params}->{width} || !$self->{params}->{height});
 
     $img->Flip();
@@ -271,9 +275,10 @@ sub init
     {
       $params->{gl_format} = $params->{endian} ? GL_RGBA : GL_BGRA;
       my $alpha = $img->Get('matte');
+      $img->Set('matte'=>'True') if (!$alpha);
+
       $img->Negate(channel=>'Alpha');
       $params->{alpha} = -1;
-
       $params->{length} =  $params->{size} * $elements;
 
       $self->{oga} = OpenGL::Array->new_pointer($params->{gl_type},
@@ -290,7 +295,8 @@ sub init
   $params->{size} = 1;
   $params->{gl_format} = GL_RGBA;
   $params->{alpha} = 1;
-  $params->{length} = $params->{pixels} * $params->{components} * $params->{size};
+  $params->{length} = $params->{pixels} * $params->{components} *
+    $params->{size};
 
   $img->Set(magick=>'RGBA',depth=>8);
   $self->{oga} = OpenGL::Array->new_scalar($params->{gl_type},
@@ -321,10 +327,40 @@ sub SyncOGA
   my $img = $self->{native};
   my $params = $self->{params};
 
-  if ($self->{blobs})
+  my($w,$h) = $img->Get('width','height');
+  if ($w != $params->{width} || $h != $params->{height})
   {
-    $img->Set(magick=>'RGBA',depth=>8);
+    $params->{width} = $w;
+    $params->{height} = $h;
+    $params->{pixels} = $w * $h; 
+
     my $elements = $params->{pixels} * $params->{components};
+    $params->{length} = $elements * $params->{size};
+
+    if ($self->{blobs})
+    {
+      $img->Set(magick=>'RGBA',depth=>8);
+
+      $self->{oga} = OpenGL::Array->new_scalar($params->{gl_type},
+        $img->ImageToBlob(),$elements);
+    }
+    else
+    {
+      my $alpha = $img->Get('matte');
+      $img->Set('matte'=>'True') if (!$alpha);
+
+      $img->Negate(channel=>'Alpha');
+
+      $self->{oga} = OpenGL::Array->new_pointer($params->{gl_type},
+        $img->GetImagePixels(rows=>$h),$elements);
+    }
+  }
+  elsif ($self->{blobs})
+  {
+    my $elements = $params->{pixels} * $params->{components};
+
+    $img->Set(magick=>'RGBA',depth=>8);
+
     $self->{oga} = OpenGL::Array->new_scalar($params->{gl_type},
       $img->ImageToBlob(),$elements);
   }

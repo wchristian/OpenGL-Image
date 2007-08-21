@@ -102,10 +102,13 @@
   $img->Native->Blur();
 
   # Test if image width is a power of 2
-  if ($img->IsPowerOf2())
+  if ($img->IsPowerOf2());
 
   # Test if all listed values are a power of 2
-  if ($img->IsPowerOf2(@list))
+  if ($img->IsPowerOf2(@list));
+
+  # Get largest power of 2 size within dimensions of image
+  my $size = $img->GetPowerOf2();
 
   # Get one or more parameter values
   my @values = $img->Get(@params);

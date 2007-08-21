@@ -15,7 +15,7 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION $DESCRIPTION @ISA);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 $DESCRIPTION = qq
 {Supports uncompressed RGBA files; default engine driver.
@@ -62,10 +62,13 @@ use OpenGL(':constants');
   # Note: No native Targa object
 
   # Test if image width is a power of 2
-  if ($img->IsPowerOf2())
+  if ($img->IsPowerOf2());
 
   # Test if all listed values are a power of 2
-  if ($img->IsPowerOf2(@list))
+  if ($img->IsPowerOf2(@list));
+
+  # Get largest power of 2 size within dimensions of image
+  my $size = $img->GetPowerOf2();
 
   # Get all parameters as a hashref
   my $params = $img->Get();
@@ -197,7 +200,11 @@ sub read_file
 
   my $buf;
   my $len = read(FILE,$buf,18);
-  return close(FILE) if ($len != 18);
+  if ($len != 18)
+  {
+    close(FILE);
+    return undef;
+  }
 
   # Parse header
   my
@@ -216,14 +223,20 @@ sub read_file
     $pix_attrs  # byte
   ) = unpack('C C C S S C S S S S C C',$buf);
 
-  # Check for uncompressed RGB
-  return close(FILE) if ($image_type != 2);
-
   # Check for cmap
-  return close(FILE) if ($cmap_type);
+  if ($cmap_type)
+  {
+    close(FILE);
+    return undef;
+  }
 
-  # Only supporting standard 32 bit RGBA at this time
-  return close(FILE) if ($pix_size != 32 || $pix_attrs != 8);
+  # Only supporting 24 bit RGB or 32 bit RGBA at this time
+  if (!($pix_size == 32 && $pix_attrs == 8) &&
+    !($pix_size == 24 || $pix_attrs == 0))
+  {
+    close(FILE);
+    return undef;
+  }
 
   # read file identifier, if any
   if ($id_len)
@@ -232,19 +245,88 @@ sub read_file
     return close(FILE) if ($len != $id_len);
   }
 
-  # Read image data
-  my $data_len = $w * $h * 4;
-  $len = read(FILE,$buf,$data_len);
-  close(FILE);
-  return undef if ($len != $data_len);
-
   # Save file attrs
   my $params = $self->{params};
   $params->{width} = $w;
   $params->{height} = $h;
-  $params->{length} = $data_len;
   $params->{pixels} = $w * $h;
+  my $data_len = $w * $h * 4;
+  $params->{length} = $data_len;
+  $buf = '';
 
+  # Handle runlength-encoded RGB
+  if ($image_type == 10)
+  {
+    my($data,$count,$rle);
+    my $size = $pix_size / 8;
+    $len = 0;
+
+    while (($len < $data_len) && (read(FILE,$data,1) == 1))
+    {
+      $count = ord($data);
+      $rle = $count & 128;
+
+      if ($rle)
+      {
+        $count &= 127;
+        $count++;
+        last if (read(FILE,$data,$size) != $size);
+        $data .= chr(0xFF) if ($size != 4);
+        $buf .= $data x $count;
+        $len += $count * 4;
+      }
+      # Raw 32 bit pixels
+      elsif ($pix_size == 32)
+      {
+        $count++;
+        $count *= 4;
+        last if (read(FILE,$data,$count) != $count);
+        $buf .= $data;
+        $len += $count;
+      }
+      # Raw 24 bit pixels
+      else
+      {
+        $count++;
+        $len += $count * 4;
+        for (my $i=0; $i<$count; $i++)
+        {
+          last if (3 != read(FILE,$data,3));
+          $buf .= $data.chr(0xFF);
+        }
+      }
+    }
+  }
+  # Unsupported image type
+  elsif ($image_type != 2)
+  {
+    close(FILE);
+    return undef;
+  }
+  # Read 32 bit images
+  elsif ($pix_size == 32)
+  {
+    $len = read(FILE,$buf,$data_len);
+  }
+  # Read 24 bit images; add alpha channel
+  else
+  {
+    my $pixel;
+    for (my $i=0; $i<$w*$h; $i++)
+    {
+      last if (3 != read(FILE,$pixel,3));
+      $buf .= $pixel.chr(0xFF);
+    }
+    $len = length($buf);
+  }
+  close(FILE);
+
+  # Pad out buffer if it's short
+  if ($len < $data_len)
+  {
+    my $pixel = chr(0) x 4;
+    $buf .= $pixel x ($data_len - $len);
+  }
   return $buf;
 }
 

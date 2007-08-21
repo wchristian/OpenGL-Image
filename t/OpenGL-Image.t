@@ -8,7 +8,7 @@ my $dst_image = 'test.jpg';
 my $tga_image = 'test.tga';
 my $width = 128;
 my $height = 128;
-my $deviation = 0.05;
+my $deviation = 0.15;
 
 
 # Init tests
@@ -249,7 +249,7 @@ $t->ok("GetArray() contains $elements elements");
 #15 Test Ptr()
 if ($oga->ptr() && $oga->ptr() != $sav->Ptr())
 {
-  $t->bail("Ptr() returned invalid pointer: ".$oga->ptr().', '.$sav->Ptr())."\n";
+  $t->bail("Ptr() returned invalid pointer: ".$oga->ptr().', '.$sav->Ptr()."\n");
 }
 $t->ok("Ptr() returned a valid pointer");
 
@@ -399,7 +399,7 @@ $t->ok("GetArray() contains $elements elements");
 #26 Test Ptr()
 if ($oga->ptr() && $oga->ptr() != $src->Ptr())
 {
-  $t->bail("Ptr() returned invalid pointer: ".$oga->ptr().', '.$src->Ptr())."\n";
+  $t->bail("Ptr() returned invalid pointer: ".$oga->ptr().', '.$src->Ptr()."\n");
 }
 $t->ok("Ptr() returned a valid pointer");
 

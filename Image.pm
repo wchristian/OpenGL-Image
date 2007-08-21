@@ -15,7 +15,7 @@ require Exporter;
 use Carp;
 
 use vars qw($VERSION @ISA);
-$VERSION = '1.00';
+$VERSION = '1.01';
 
 @ISA = qw(Exporter);
 
@@ -125,10 +125,13 @@ $VERSION = '1.00';
   $img->Native->Blur();
 
   # Test if image width is a power of 2
-  if ($img->IsPowerOf2())
+  if ($img->IsPowerOf2());
 
   # Test if all listed values are a power of 2
-  if ($img->IsPowerOf2(@list))
+  if ($img->IsPowerOf2(@list));
+
+  # Get largest power of 2 size within dimensions of image
+  my $size = $img->GetPowerOf2();
 
   # Get one or more parameter values
   my @values = $img->Get(@params);
@@ -238,19 +241,19 @@ sub HasEngine
   my $version;
   my $module = GetEngineModule($engine);
 
-  # Redirect Perl errors if module can't be loaded
-  open(OLD_STDERR,">&STDERR");
-  close(STDERR);
-
   my $exec = qq
   {
+    # Redirect Perl errors if module can't be loaded
+    open(OLD_STDERR,">&STDERR");
+    close(STDERR);
+
     use $module;
     \$version = $module\::EngineVersion();
+
+    # Restore STDERR
+    open(STDERR,">&OLD_STDERR");
   };
   eval($exec);
-
-  # Restore STDERR
-  open(STDERR,">&OLD_STDERR");
 
   return undef if (!$version);
   return undef if ($min_ver && $version lt $min_ver);

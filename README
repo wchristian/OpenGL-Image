@@ -22,4 +22,21 @@ http://graphcomp.com/opengl
 
 Changes:
 
-1.0	First release - Bob "grafman" Free <grafman@graphcomp.com>
+1.01	Fixed typo in test app.
+
+	Added support for 24 bit images in Targa.pm
+
+	Added support for runlength-encoded images in Targa.pm
+
+	Fixed non-alpha image handling (eg: JPEGs) for unix in Magick.pm
+
+	Updated STDERR handling when attempting to load image modules.
+
+	Added GetPowerOf2.
+
+	Updated SyncOGA in Magick.pm to handle image resizing.
+
+	Added hex_tile.pl screensaver
+
+
+1.00	First release - Bob "grafman" Free <grafman@graphcomp.com>
