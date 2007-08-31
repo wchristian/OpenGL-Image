@@ -60,14 +60,13 @@ else
 $t->status("Testing OpenGL::Image::GetEngines():");
 my $engines = OpenGL::Image::GetEngines();
 my @engines = keys(%$engines);
-$t->bail("No imaging engines installed!") if (!scalar(@engines));
-my $had_engine = 0;
+$t->bail("No imaging engines installed!") if (!@engines);
 my $has_TGA = 0;
 my $has_IM = 0;
 my $has_IM635 = 0;
 foreach my $engine (sort @engines)
 {
-  $t->status("  $engine: ".$engines->{$engine});
+  $t->status("  $engine: ".$engines->{$engine}->{version});
   if ($engine eq 'Targa')
   {
     $has_TGA = 1;
@@ -75,7 +74,7 @@ foreach my $engine (sort @engines)
   elsif ($engine eq 'Magick')
   {
     $has_IM = 1;
-    $has_IM635 = $engines->{'Magick'} ge '6.3.5';
+    $has_IM635 = $engines->{'Magick'}->{version} ge '6.3.5';
   }
 }
 $t->status('Targa is ' . ($has_TGA ? '' : 'NOT ') . "installed");
@@ -84,7 +83,7 @@ $t->ok("At least one imaging engine is installed");
 
 
 #4 Test HasEngine()
-my $engine_ver = OpenGL::Image::HasEngine($engines[0]);
+my $engine_ver = OpenGL::Image::HasEngine($engines[0])->{version};
 $t->bail("HasEngine('$engines[0]') failed to return a version") if (!$engine_ver);
 $t->ok("HasEngine('$engines[0]') returned '$engine_ver'");
 

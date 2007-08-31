@@ -2,6 +2,7 @@
 
   OpenGL::Image - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
   Author: Bob "grafman" Free - grafman@graphcomp.com
+  Contributor: Geoff Broadwell
 
   This program is free software; you can redistribute it and/or
   modify it under the same terms as Perl itself.
@@ -11,11 +12,13 @@
 
   This module is an extensible wrapper to abstract imaging interfaces
 
-  By default, this module uses the Image::Magick module; support for
+  By default, this module uses the OpenGL::Image::Targa module; support for
   other imaging libraries may be added by providing plug-in modules
   in the OpenGL/Image folder.
 
-  For the best performance, ImageMagick 6.3.5 or newer should be installed.
+  An OpenGL::Image::Magick module is also provided for use with
+  PerlMagick.  For best performance, ImageMagick 6.3.5 or newer should
+  be installed.
 
 
 =head1 SYNOPSIS
@@ -25,15 +28,25 @@
   use OpenGL::Image;
 
   # Get hashref of installed imaging engines
-  # Keys are engine names; values are versions
-  my $engines = OpenGL::Image::GetEngines();
+  # Keys are engine names; values are info hashes, including version,
+  # priority (1 .. n, 1 is highest), module (Perl module name)
+  # and description.
+  # Priority can be set using Engines.lst (see INSTALL); otherwise
+  # 'Targa' has top priority, and others are in unspecified order.
+  my $engine_hashref = OpenGL::Image::GetEngines();
+
+  # In list context, returns list of info hashes sorted by engine
+  # priority; info hash does not include a priority value.
+  my @sorted_engine_info = OpenGL::Image::GetEngines();
 
   # Check for a specific engine and optional version support
-  my $ok = OpenGL::Image::HasEngine('Magick','6.3.5');
+  # Returns an info hashref for the engine if available; otherwise undef.
+  my $info_hashref = OpenGL::Image::HasEngine('Magick','6.3.5');
 
 
   ##########
-  # Load texture (engine defaults to Image::Targa if not specified)
+  # Load texture - defaults to highest priority engine if none specified;
+  # if Engines.lst is not specified, the highest priority is the Targa engine.
   my $tex = new OpenGL::Image(source=>'test.tga');
 
   # Get GL info
@@ -49,7 +62,7 @@
 
   ##########
   # Modify GL frame using ImageMagick
-  my $frame = new OpenGL::Image(engine=>'Magick',width=>$width,height=>$height);
+  my $frame = new OpenGL::Image(engine=>'Magick',width=>$w,height=>$h);
 
   # Get default GL info
   my($def_fmt,$def_type) = $tex->Get('gl_format','gl_type');
@@ -78,7 +91,6 @@
   $image->Save('MyImage.tga');
 
 
-
   ##########
   # Get/Set normalized pixels
 
@@ -88,7 +100,6 @@
 
   # Sync cache after done modifying pixels
   $frame->Sync();
-
 
 
   ##########
@@ -126,7 +137,7 @@
   ##########
   # Supported parameters:
 
-  # version  version of the engine
+  # version - version of the engine
   # source - source image, if defined
   # width - width of image in pixels
   # height - height of image in pixels
@@ -135,8 +146,8 @@
   # size - bytes per component
   # length - cache size in bytes
   # endian - 1 if big endian; otherwise 0
-  # alpha - 1 if has alpha channel, -1 if has inverted alpha channel; 0 if none
-  # flipped - 1 bit set if cache scanlines are top to bottom; others reserved
+  # alpha - 1: normal alpha channel, -1: inverted alpha channel; 0: none
+  # flipped - 1 bit set if cache ordered top to bottom; others reserved
   # gl_internalformat - internal GL pixel format. eg: GL_RGBA8, GL_RGBA16
   # gl_format - GL pixel format. eg: GL_RGBA, GL_BGRA
   # gl_type - GL data type.  eg: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT
@@ -152,7 +163,7 @@
   # Used by some engines for paged caches; otherwise a NOP.
   $img->Sync();
 
-  # Save the image to a PNG file (assuming the native engine supports PNGs).
+  # Save the image to a PNG file (assuming the engine supports PNGs)
   $img->Save('MyImage.png');
 
   # Get image blob.

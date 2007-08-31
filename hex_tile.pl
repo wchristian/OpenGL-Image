@@ -4,6 +4,8 @@ use Math::Trig;
 use OpenGL qw/ :all /;
 use OpenGL::Image;
 
+die "Requires ImageMagick\n" if (!OpenGL::Image::HasEngine('Magick'));
+
 eval 'use Time::HiRes qw( gettimeofday )';
 my $hasHires = !$@;
 
@@ -76,20 +78,20 @@ $opts->{fps} = 30 if (!defined($opts->{fps}));
 my $fps = $opts->{fps};
 
 # Set default tiling frequency
-my($freqx,$freqy) = DefaultFreq($opts->{w},$opts->{h});
 if (!$opts->{xf} && !$opts->{yf})
 {
-  $opts->{xf} = $freqx;
-  $opts->{yf} = $freqy;
+  ($opts->{xf},$opts->{yf}) = DefaultFreq($opts->{w},$opts->{h});
 }
 elsif (!$opts->{yf})
 {
   $opts->{yf} = $opts->{xf} * 2;
 }
-else
+elsif (!$opts->{xf})
 {
   $opts->{xf} = int(.5 + $opts->{yf} / 2) || 1;
 }
+my $freqx = $opts->{xf};
+my $freqy = $opts->{yf};
 
 # Get app name
 $0 =~ m|^([^\.]+)|;
@@ -97,7 +99,7 @@ my $name = $1 || 'capture';
 
 # Window parameters
 my $wnd_ID;
-my $wnd_title = 'Grafman Image Filter';
+my $wnd_title = 'Grafman Hexagonal Tiler';
 my $wnd_width = $opts->{w};
 my $wnd_height = $opts->{h};
 my($save_w,$save_h,$save_x,$save_y);
@@ -134,8 +136,8 @@ Terminate("Unable to alloc texture ID") if (!$tex_ID);
 glBindTexture($tex_mode, $tex_ID);
 glTexParameteri($tex_mode, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 glTexParameteri($tex_mode, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-glTexParameteri($tex_mode, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-glTexParameteri($tex_mode, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+glTexParameteri($tex_mode, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+glTexParameteri($tex_mode, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 # Register rendering callback
 glutDisplayFunc(\&cbRenderScene);
@@ -223,17 +225,17 @@ sub LoadNextImage
 
   if (!$force && $image)
   {
-    return if (!$dur || $images==1);
+    return 1 if (!$dur || $images==1);
 
     my $secs = time() - $last_image;
 
     if ($pause || $display_source)
     {
       $last_image += $dur - $secs;
-      return;
+      return 1;
     }
 
-    return if ($secs < $dur);
+    return 1 if ($secs < $dur);
   }
   $last_image = time();
 
@@ -252,7 +254,7 @@ sub LoadNextImage
   #print "Attempting to load: '$1'\n";
 
   $image = new OpenGL::Image(engine=>'Magick',source=>$path);
-  return if (!$image);
+  return 0 if (!$image);
 
   # Resample image if GL_ARB_texture_rectangle not supported
   if (!$hasTexRect)
@@ -263,7 +265,7 @@ sub LoadNextImage
   }
 
   ($image_w,$image_h) = $image->Get('width','height');
-  return if (!$image_w || !$image_h);
+  return 0 if (!$image_w || !$image_h);
 
   # Init texture coords
   $x0 = rand($image_w);
@@ -298,13 +300,14 @@ sub LoadNextImage
 
   glBindTexture($tex_mode, $tex_ID);
   glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+
+  return 1;
 }
 
 # Rendering callback
 sub cbRenderScene
 {
   # Throttle FPS
-  return if (!$fps);
   if ($hasHires && ($fps > 0))
   {
     my $spf = 1 / $fps;
@@ -318,7 +321,7 @@ sub cbRenderScene
   #glColor3i(1, 1, 1);
 
   # Load image texture
-  LoadNextImage();
+  print "Bad image\n" while (!LoadNextImage());
 	
   glEnable($tex_mode);
 
@@ -437,7 +440,7 @@ sub cbRenderScene
 
   glutSwapBuffers();
 
-  if (!$pause)
+  if ($fps && !$pause)
   {
     ($x0,$dx0) = nudge($x0,$dx0,$image_w);
     ($y0,$dy0) = nudge($y0,$dy0,$image_h);
@@ -465,7 +468,7 @@ sub cbKeyPressed
   my $c = uc chr $key;
   if ($key == 27 or $c eq 'Q')
   {
-    glutDestroyWindow($wnd_ID);
+    TermApp();
     exit(1);
   }
   elsif ($c eq 'P')
@@ -547,7 +550,8 @@ sub cbKeyPressed
   }
   elsif ($c eq '0')
   {
-    ($freqx,$freqy) = DefaultFreq();
+    $freqx = $opts->{xf};
+    $freqy = $opts->{yf};
   }
   elsif ($c ge '1' && $c le '9')
   {
@@ -576,8 +580,6 @@ sub ToggleFS
     glutFullScreen();
     $wnd_width = glutGet(GLUT_SCREEN_WIDTH);
     $wnd_height = glutGet(GLUT_SCREEN_HEIGHT);
-
-    ($freqx,$freqy) = DefaultFreq();
   }
   else
   {
@@ -585,10 +587,10 @@ sub ToggleFS
     $wnd_height = $save_h;
     glutReshapeWindow($wnd_width,$wnd_height);
     glutPositionWindow($save_x,$save_y);
-
-    $freqx = $opts->{xf};
-    $freqy = $opts->{yf};
   }
+
+  $freqx = $opts->{xf};
+  $freqy = $opts->{yf};
 }
 
 # Get default tiling freqencies
@@ -617,10 +619,10 @@ sub cbResizeScene
 {
   my ($Width,$Height) = @_;
 
-  glViewport(0, 0, $Width, $Height);
-
   $wnd_width  = $Width;
   $wnd_height = $Height;
+
+  InitApp();
 }
 
 # Initialize app
@@ -651,3 +653,18 @@ sub InitApp
   glEnable(GL_CULL_FACE);
 }
 
+# Cleanup routine
+sub TermApp
+{
+  # Disable app
+  glutHideWindow();
+  glutKeyboardFunc();
+  glutSpecialFunc();
+  glutIdleFunc();
+  glutReshapeFunc();
+
+  glDeleteTextures_p($tex_ID);
+
+  # Now you can destroy window
+  glutDestroyWindow($wnd_ID);
+}

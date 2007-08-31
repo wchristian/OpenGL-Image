@@ -9,10 +9,10 @@ with OpenGL textures, FBOs and VBOs.
 It requires the OpenGL module - version 0.55_03 or newer.
 
 It also requires at least one supported OpenGL::Image imaging engine.
-At this time, the following  drivers are supported:
+At this time, the following drivers are supported:
 
-* Targa - Pure Perl - uncompressed RGBA files (comes with OpenGL::Image).
-* ImageMagick - v6.3.5 or newer is recommended for the best performance.
+* Targa  - Pure Perl - uncompressed RGBA files (comes with OpenGL::Image).
+* Magick - Requires PerlMagick (v6.3.5 or newer for best performance).
 
 You can find the latest releases and information for installing/using
 these modules at the Perl OpenGL (POGL) Developer's Site:
@@ -22,21 +22,26 @@ http://graphcomp.com/opengl
 
 Changes:
 
-1.01	Fixed typo in test app.
+1.02	Geoff Broadwell
+	Removed redundant documentation from Image.pm
+	Fixed/enhanced priority handling and engine info retrieval
+	  for GetEngines and HasEngine.
+	Cleaned up NewEngine.
+	Cleaned up Image.pod, INSTALL and README.
 
+	Bob "grafman" Free <grafman@graphcomp.com>
+	Fixed version number for OpenGL::Image::Common
+	Enhanced hex_tile.pl
+	Updated OpenGL-Image.t to reflect Geoff's changes
+
+1.01	Bob "grafman" Free <grafman@graphcomp.com>
+	Fixed typo in test app.
 	Added support for 24 bit images in Targa.pm
-
 	Added support for runlength-encoded images in Targa.pm
-
 	Fixed non-alpha image handling (eg: JPEGs) for unix in Magick.pm
-
 	Updated STDERR handling when attempting to load image modules.
-
 	Added GetPowerOf2.
-
 	Updated SyncOGA in Magick.pm to handle image resizing.
-
 	Added hex_tile.pl screensaver
-
 
 1.00	First release - Bob "grafman" Free <grafman@graphcomp.com>
