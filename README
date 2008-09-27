@@ -19,8 +19,15 @@ these modules at the Perl OpenGL (POGL) Developer's Site:
 http://graphcomp.com/opengl
 
 
+NOTE: as of 1.03, you _must_ call Sync prior to calling native (eg. ImageMagick) APIs
+on an OpenGL::Image object, and call SyncOGA when done with your native calls.
+
 
 Changes:
+
+1.03	Bob "grafman" Free <grafman@graphcomp.com>
+	Revamped Magick.pm to correctly handle alpha channels and sync'g
+	on various platforms.
 
 1.02	Geoff Broadwell
 	Removed redundant documentation from Image.pm

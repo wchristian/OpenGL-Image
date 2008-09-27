@@ -1,6 +1,6 @@
 =head1 NAME
 
-  OpenGL::Image - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+  OpenGL::Image - v1.03 copyright 2007 Graphcomp - ALL RIGHTS RESERVED
   Author: Bob "grafman" Free - grafman@graphcomp.com
   Contributor: Geoff Broadwell
 
@@ -54,7 +54,7 @@
   my($w,$h) = $tex->Get('width','height');
 
   # Test if power of 2
-  if (!$tex->PowerOf2()) return;
+  if (!$tex->IsPowerOf2()) return;
 
   # Set texture  
   glTexImage2D_c(GL_TEXTURE_2D, 0, $ifmt, $w, $h, 0, $fmt, $type, $tex->Ptr());
@@ -70,11 +70,16 @@
   # Read frame pixels
   glReadPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $frame->Ptr());
 
-  # Sync cache
+  # Sync native image buffer
+  # Must use this prior to making native calls
   $frame->Sync();
 
   # Modify frame pixels
   $frame->Native->Blur();
+
+  # Sync OGA
+  # Must use this atfer all native calls are done
+  $frame->SyncOGA();
 
   # Draw back to frame
   glDrawPixels_c(0, 0, $width, $height, $def_fmt, $def_type, $frame->Ptr());

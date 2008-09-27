@@ -1,22 +1,10 @@
-Change List for 1.01 - Bob "grafman" Free <bfree@graphcomp.com>
+Change List for 1.03 - Bob "grafman" Free <bfree@graphcomp.com>
 ____________________________________________________________
 
 Updated Changes
 
-Added hex_tile.pl
-
 Updated Image.pm
-
-Updated Image.pod
-
-Update Image/Common.pm
 
 Update Image/Magick.pm
 
-Update Image/Targa.pm
-
-Updated INSTALL
-
 Updated README
-
-Updated t/OpenGL-Image.t
