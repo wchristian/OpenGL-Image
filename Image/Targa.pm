@@ -9,6 +9,7 @@
 ############################################################
 
 package OpenGL::Image::Targa;
+use strictures;
 
 require Exporter;
 
@@ -148,7 +149,7 @@ sub new {
     my $this = shift;
     my $class = ref( $this ) || $this;
 
-    my $self = new OpenGL::Image::Common( @_ );
+    my $self = OpenGL::Image::Common->new( @_ );
     return undef if ( !$self );
     bless( $self, $class );
 

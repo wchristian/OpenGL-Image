@@ -1,5 +1,4 @@
-#!/usr/bin/perl -w
-use strict;
+use strictures;
 use OpenGL( ':all' );
 
 # Images used for testing
@@ -11,7 +10,7 @@ my $height    = 128;
 my $deviation = 0.15;
 
 # Init tests
-my $t = new MyTests( 26, 'Testing OpenGL::Image' );
+my $t = MyTests->new( 26, 'Testing OpenGL::Image' );
 
 # Get OpenGL version
 my $pogl_ver     = $OpenGL::VERSION;
@@ -82,7 +81,7 @@ $t->bail( "OpenGL::Array returned invalid element count" ) if ( 4 != $oga->eleme
 $t->ok( "Instantiated OpenGL::Array" );
 
 #6 Test image object instantiation
-my $tga = new OpenGL::Image( width => $width, height => $height );
+my $tga = OpenGL::Image->new( width => $width, height => $height );
 $t->bail( "Unable to instantiate OpenGL::Image" ) if ( !$tga );
 $t->ok( "Instantiated OpenGL::Image(width\=>$width,height\=>$height)" );
 
@@ -127,7 +126,7 @@ $t->bail( "Save('$tga_image') failed to create $tga_image" ) if ( !-e $tga_image
 $t->ok( "Save('$tga_image') created image" );
 
 #9 Test image loading
-my $sav = new OpenGL::Image( source => $tga_image );
+my $sav = OpenGL::Image->new( source => $tga_image );
 $t->bail( "Unable to instantiate OpenGL::Image" ) if ( !$sav );
 $t->ok( "Instantiated OpenGL::Image(source=>'$tga_image')" );
 unlink( $tga_image );
@@ -231,7 +230,7 @@ if ( !$has_IM || !$has_image ) {
 }
 
 #17 Test Loading source image
-my $src = new OpenGL::Image( engine => 'Magick', source => $src_image );
+my $src = OpenGL::Image->new( engine => 'Magick', source => $src_image );
 $t->bail( "Unable to instantiate OpenGL::Image(engine=>'Magick',source=>'$src_image')" ) if ( !$src );
 $t->ok( "Instantiated OpenGL::Image(engine=>'Magick',source=>'$src_image')" );
 
@@ -253,7 +252,7 @@ $t->bail( "Save('$dst_image') failed to create file" ) if ( !-e $dst_image );
 $t->ok( "Save('$dst_image') created image" );
 
 #20 Test Loading destination image
-my $dst = new OpenGL::Image( engine => 'Magick', source => $dst_image );
+my $dst = OpenGL::Image->new( engine => 'Magick', source => $dst_image );
 $t->bail( "Unable to instantiate OpenGL::Image(engine=>'Magick',source=>'$dst_image')" ) if ( !$dst );
 $t->ok( "Instantiated OpenGL::Image(engine=>'Magick',source=>'$dst_image')" );
 unlink( $dst_image );

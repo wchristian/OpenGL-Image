@@ -9,6 +9,7 @@
 ############################################################
 
 package OpenGL::Image::Magick;
+use strictures;
 
 require Exporter;
 
@@ -159,7 +160,7 @@ sub new {
     my $this = shift;
     my $class = ref( $this ) || $this;
 
-    my $self = new OpenGL::Image::Common( @_ );
+    my $self = OpenGL::Image::Common->new( @_ );
     return undef if ( !$self );
 
     $self->{params}->{engine}  = 'Magick';
@@ -172,7 +173,7 @@ sub new {
     # Use source image if supplied
     my $img;
     if ( $self->{params}->{source} ) {
-        $img = new Image::Magick();
+        $img = Image::Magick->new;
         return undef if ( !$img );
 
         my $stat = $img->Read( $self->{params}->{source} );
@@ -193,10 +194,10 @@ sub new {
 
         if ( $w && $h ) {
             my $dim = $w . 'x' . $h;
-            $self->{native} = new Image::Magick( size => $dim, magick => 'RGBA', depth => 8 );
+            $self->{native} = Image::Magick->new( size => $dim, magick => 'RGBA', depth => 8 );
         }
         elsif ( $blob ) {
-            $self->{native} = new Image::Magick();
+            $self->{native} = Image::Magick->new;
         }
         return undef if ( !$self->{native} );
         $img = $self->{native};
