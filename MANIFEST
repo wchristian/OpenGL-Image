@@ -2,7 +2,6 @@ Changes
 COPYRIGHT
 eg/hex_tile.pl
 lib/OpenGL/Modern/Image.pm
-lib/OpenGL/Modern/Image.pod
 lib/OpenGL/Modern/Image/Common.pm
 lib/OpenGL/Modern/Image/Magick.pm
 lib/OpenGL/Modern/Image/Targa.pm
