@@ -13,7 +13,7 @@ use strictures;
 use Carp;
 use vars qw($VERSION $DESCRIPTION @ISA);
 use OpenGL::Modern::Image::Common;
-use OpenGL( ':constants' );
+use OpenGL::Modern qw( GL_RGBA16 GL_UNSIGNED_SHORT GL_RGBA8 GL_RGBA GL_BGRA GL_UNSIGNED_BYTE );
 
 require Exporter;
 $VERSION     = '1.02';

@@ -29,7 +29,6 @@ $VERSION = '1.01';
 =head1 DESCRIPTION
 
   This module provides a base class for OpenGL imaging engines.
-  Requires the OpenGL module.
 
 
 =head1 SYNOPSIS

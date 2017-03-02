@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 use strictures;
 use Math::Trig;
-use OpenGL qw/ :all /;
+use OpenGL::Modern ':all';
 use OpenGL::Modern::Image;
+use OpenGL::GLUT ':all';
 
 die "Requires ImageMagick\n" if ( !OpenGL::Modern::Image::HasEngine( 'Magick' ) );
 

@@ -1,5 +1,6 @@
 use strictures;
-use OpenGL( ':all' );
+use OpenGL::Modern qw( GL_UNSIGNED_BYTE );
+use OpenGL::Array;
 
 # Images used for testing
 my $src_image = 't/test.png';
@@ -12,17 +13,15 @@ my $deviation = 0.15;
 # Init tests
 my $t = MyTests->new( 26, 'Testing OpenGL::Modern::Image' );
 
-# Get OpenGL version
-my $pogl_ver     = $OpenGL::VERSION;
-my $has_pogl5503 = $pogl_ver ge '0.5503';
-$t->status( "Using OpenGL v$pogl_ver" );
-$t->status( "Recommend OpenGL 0.55_03 or newer to use" ) if ( !$has_pogl5503 );
+# Get OpenGL::Modern version
+my $pogl_ver = $OpenGL::Modern::VERSION;
+$t->status( "Using OpenGL::Modern v$pogl_ver" );
 
 #1 Get module version
 my $ogi_ver;
 my $exec = qq
 {
-  use OpenGL\::Modern\::Image;
+  use OpenGL::Modern::Image;
   \$ogi_ver = \$OpenGL::Modern::Image::VERSION;
 };
 eval( $exec );
@@ -75,7 +74,7 @@ $t->bail( "HasEngine('$engines[0]') failed to return a version" ) if ( !$engine_
 $t->ok( "HasEngine('$engines[0]') returned '$engine_ver'" );
 
 #5 Test OpenGL::Array
-my $oga = OpenGL::Array->new_list( OpenGL::GL_UNSIGNED_BYTE, 1, 2, 3, 4 );
+my $oga = OpenGL::Array->new_list( GL_UNSIGNED_BYTE, 1, 2, 3, 4 );
 $t->bail( "Unable to instantiate OpenGL::Array" ) if ( !$oga );
 $t->bail( "OpenGL::Array returned invalid element count" ) if ( 4 != $oga->elements() );
 $t->ok( "Instantiated OpenGL::Array" );

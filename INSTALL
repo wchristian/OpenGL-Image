@@ -1,7 +1,7 @@
 
  To install the OpenGL::Modern::Image modules, please follow these instructions:
 
- 1. Install the OpenGL module first
+ 1. Install the OpenGL::Modern module first
 
  2. Optionally install one or more supported imaging library.
     At this time, OpenGL::Modern::Image supports:
@@ -13,7 +13,7 @@
 
     If you've installed multiple OpenGL::Modern::Image engines, you can define
     the priority of the engines selected by OpenGL::Modern::Image by creating a
-    Engines.lst file in the OpenGL/Image folder - separate each engine
+    Engines.lst file in lib/OpenGL/Modern/Image - separate each engine
     name by a newline, with no whitespace.
  
  3. Run 'perl Makefile.PL'
