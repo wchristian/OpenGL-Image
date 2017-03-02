@@ -23,9 +23,7 @@ $DESCRIPTION = qq
 use OpenGL::Image::Common;
 @ISA = qw(Exporter OpenGL::Image::Common);
 
-use OpenGL(':constants');
-
-
+use OpenGL( ':constants' );
 
 =head1 NAME
 
@@ -146,289 +144,256 @@ use OpenGL(':constants');
 
 eval 'use Image::Magick';
 
-
 # Get engine version
-sub EngineVersion
-{
-  return $Image::Magick::VERSION;
+sub EngineVersion {
+    return $Image::Magick::VERSION;
 }
 
 # Get engine description
-sub EngineDescription
-{
-  return $DESCRIPTION;
+sub EngineDescription {
+    return $DESCRIPTION;
 }
 
 # Base constructor
-sub new
-{
-  my $this = shift;
-  my $class = ref($this) || $this;
+sub new {
+    my $this = shift;
+    my $class = ref( $this ) || $this;
 
-  my $self = new OpenGL::Image::Common(@_);
-  return undef if (!$self);
+    my $self = new OpenGL::Image::Common( @_ );
+    return undef if ( !$self );
 
-  $self->{params}->{engine} = 'Magick';
-  $self->{params}->{version} = EngineVersion();
+    $self->{params}->{engine}  = 'Magick';
+    $self->{params}->{version} = EngineVersion();
 
-  $self->{params}->{components} = 4;
-  $self->{params}->{alpha} = 0;
-  $self->{params}->{flipped} = 1;
+    $self->{params}->{components} = 4;
+    $self->{params}->{alpha}      = 0;
+    $self->{params}->{flipped}    = 1;
 
-  # Use source image if supplied
-  my $img;
-  if ($self->{params}->{source})
-  {
-    $img = new Image::Magick();
-    return undef if (!$img);
+    # Use source image if supplied
+    my $img;
+    if ( $self->{params}->{source} ) {
+        $img = new Image::Magick();
+        return undef if ( !$img );
 
-    my $stat = $img->Read($self->{params}->{source});
-    return undef if ($stat);
+        my $stat = $img->Read( $self->{params}->{source} );
+        return undef if ( $stat );
 
-    ($self->{params}->{width},$self->{params}->{height}) =
-      $img->Get('Width','Height');
-    return undef if (!$self->{params}->{width} || !$self->{params}->{height});
+        ( $self->{params}->{width}, $self->{params}->{height} ) =
+          $img->Get( 'Width', 'Height' );
+        return undef if ( !$self->{params}->{width} || !$self->{params}->{height} );
 
-    $self->{native} = $img;
-  }
-  # Otherwise create uninitialized image
-  else
-  {
-    my $w = $self->{params}->{width};
-    my $h = $self->{params}->{height};
-    my $blob = $self->{params}->{blob};
-
-    if ($w && $h)
-    {
-      my $dim = $w.'x'.$h;
-      $self->{native} = new Image::Magick(size=>$dim, magick=>'RGBA', depth=>8);
+        $self->{native} = $img;
     }
-    elsif ($blob)
-    {
-      $self->{native} = new Image::Magick();
+
+    # Otherwise create uninitialized image
+    else {
+        my $w    = $self->{params}->{width};
+        my $h    = $self->{params}->{height};
+        my $blob = $self->{params}->{blob};
+
+        if ( $w && $h ) {
+            my $dim = $w . 'x' . $h;
+            $self->{native} = new Image::Magick( size => $dim, magick => 'RGBA', depth => 8 );
+        }
+        elsif ( $blob ) {
+            $self->{native} = new Image::Magick();
+        }
+        return undef if ( !$self->{native} );
+        $img = $self->{native};
+
+        # Populate with blob
+        if ( $blob ) {
+            my $stat = $img->BlobToImage( $blob );
+            return undef if ( $stat );
+
+            if ( !$w || !$h ) {
+                ( $self->{params}->{width}, $self->{params}->{height} ) =
+                  $img->Get( 'Width', 'Height' );
+            }
+        }
+
+        # Otherwise fill with 'none'
+        else {
+            my $stat = $img->Read( 'xc:none' );
+            return undef if ( $stat );
+            $img->Set( type => 'truecolormatte' );
+        }
     }
-    return undef if (!$self->{native});
-    $img = $self->{native};
 
-    # Populate with blob
-    if ($blob)
-    {
-      my $stat = $img->BlobToImage($blob);
-      return undef if ($stat);
+    my $alpha = $img->Get( 'matte' );
+    $img->Set( 'matte' => 'True' ) if ( !$alpha );
 
-      if (!$w || !$h)
-      {
-        ($self->{params}->{width},$self->{params}->{height}) =
-          $img->Get('Width','Height');
-      }
-    }
-    # Otherwise fill with 'none'
-    else
-    {
-      my $stat = $img->Read('xc:none');
-      return undef if ($stat);
-      $img->Set(type=>'truecolormatte');
-    }
-  }
+    # Good to go
+    bless( $self, $class );
 
-  my $alpha = $img->Get('matte');
-  $img->Set('matte'=>'True') if (!$alpha);
+    # Init params
+    return undef if ( !$self->init() );
+    $self->SyncOGA();
 
-  # Good to go
-  bless($self,$class);
-
-  # Init params
-  return undef if (!$self->init());
-  $self->SyncOGA();
-
-  return $self;
+    return $self;
 }
 
 # Initialize object
-sub init
-{
-  my($self) = @_;
+sub init {
+    my ( $self ) = @_;
 
-  my $w = $self->{params}->{width};
-  my $h = $self->{params}->{height};
-  $self->{params}->{pixels} = $w * $h; 
+    my $w = $self->{params}->{width};
+    my $h = $self->{params}->{height};
+    $self->{params}->{pixels} = $w * $h;
 
-  my $elements = $self->{params}->{pixels} * $self->{params}->{components};
+    my $elements = $self->{params}->{pixels} * $self->{params}->{components};
 
-  my $img = $self->{native};
+    my $img = $self->{native};
 
-  # Use C pointer to image cache, if supported
-  if ($self->{params}->{version} ge '6.3.5')
-  {
-    my $q = $img->Get('quantum');
+    # Use C pointer to image cache, if supported
+    if ( $self->{params}->{version} ge '6.3.5' ) {
+        my $q = $img->Get( 'quantum' );
 
-    if ($q == 8)
-    {
-      $self->{params}->{gl_internalformat} = GL_RGBA8;
-      $self->{params}->{gl_type} = GL_UNSIGNED_BYTE;
-      $self->{params}->{size} = 1;
+        if ( $q == 8 ) {
+            $self->{params}->{gl_internalformat} = GL_RGBA8;
+            $self->{params}->{gl_type}           = GL_UNSIGNED_BYTE;
+            $self->{params}->{size}              = 1;
+        }
+        elsif ( $q == 16 ) {
+            $self->{params}->{gl_internalformat} = GL_RGBA16;
+            $self->{params}->{gl_type}           = GL_UNSIGNED_SHORT;
+            $self->{params}->{size}              = 2;
+        }
+        else {
+            print "Unsupported pixel quantum\n";
+        }
+
+        if ( $self->{params}->{gl_type} ) {
+            $self->{params}->{gl_format} =
+              $self->{params}->{endian} ? GL_RGBA : GL_BGRA;
+
+            $self->{params}->{length} = $self->{params}->{size} * $elements;
+
+            $self->{oga} =
+              OpenGL::Array->new_pointer( $self->{params}->{gl_type}, $img->GetImagePixels( rows => $h ), $elements );
+
+            $self->{params}->{alpha} = -1;
+
+            return $self->{oga};
+        }
     }
-    elsif ($q == 16)
-    {
-      $self->{params}->{gl_internalformat} = GL_RGBA16;
-      $self->{params}->{gl_type} = GL_UNSIGNED_SHORT;
-      $self->{params}->{size} = 2;
-    }
-    else
-    {
-      print "Unsupported pixel quantum\n";
-    }
 
-    if ($self->{params}->{gl_type})
-    {
-      $self->{params}->{gl_format} = 
-        $self->{params}->{endian} ? GL_RGBA : GL_BGRA;
+    # Fall back to using standard PerlMagick interface
+    $self->{blobs}                       = 1;
+    $self->{params}->{gl_internalformat} = GL_RGBA8;
+    $self->{params}->{gl_type}           = GL_UNSIGNED_BYTE;
+    $self->{params}->{size}              = 1;
+    $self->{params}->{gl_format}         = GL_RGBA;
+    $self->{params}->{alpha}             = 1;
 
-      $self->{params}->{length} =  $self->{params}->{size} * $elements;
+    $self->{params}->{length} = $self->{params}->{pixels} * $self->{params}->{components} * $self->{params}->{size};
 
-      $self->{oga} = OpenGL::Array->new_pointer($self->{params}->{gl_type},
-        $img->GetImagePixels(rows=>$h),$elements);
+    $img->Set( magick => 'RGBA', depth => 8 );
+    $self->{oga} = OpenGL::Array->new_scalar( $self->{params}->{gl_type}, $img->ImageToBlob(), $elements );
 
-      $self->{params}->{alpha} = -1;
-
-      return $self->{oga};
-    }
-  }
-
-  # Fall back to using standard PerlMagick interface
-  $self->{blobs} = 1;
-  $self->{params}->{gl_internalformat} = GL_RGBA8;
-  $self->{params}->{gl_type} = GL_UNSIGNED_BYTE;
-  $self->{params}->{size} = 1;
-  $self->{params}->{gl_format} = GL_RGBA;
-  $self->{params}->{alpha} = 1;
-
-  $self->{params}->{length} =
-    $self->{params}->{pixels} * $self->{params}->{components} *
-    $self->{params}->{size};
-
-  $img->Set(magick=>'RGBA',depth=>8);
-  $self->{oga} = OpenGL::Array->new_scalar($self->{params}->{gl_type},
-    $img->ImageToBlob(),$elements);
-
-  return $self->{oga};
+    return $self->{oga};
 }
 
 # Sync from GPU framebuffer (OGA/blob) to IM
 # Call before using native calls
-sub Sync
-{
-  my($self) = @_;
+sub Sync {
+    my ( $self ) = @_;
 
-  my $img = $self->{native};
-  if ($self->{blobs})
-  {
-    $img->BlobToImage($self->{oga}->retrieve_data());
-  }
-  else
-  {
-    $img->SyncImagePixels();
-  }
+    my $img = $self->{native};
+    if ( $self->{blobs} ) {
+        $img->BlobToImage( $self->{oga}->retrieve_data() );
+    }
+    else {
+        $img->SyncImagePixels();
+    }
 
-  $img->Negate(channel=>'Alpha') if ($self->{params}->{alpha} < 0);
-  $img->Flip();
+    $img->Negate( channel => 'Alpha' ) if ( $self->{params}->{alpha} < 0 );
+    $img->Flip();
 }
 
 # Sync from IM to GPU framebuffer (OGA/blob)
 # Call after using native calls
-sub SyncOGA
-{
-  my($self) = @_;
+sub SyncOGA {
+    my ( $self ) = @_;
 
-  my $img = $self->{native};
+    my $img = $self->{native};
 
-  $img->Flip();
-  $img->Negate(channel=>'Alpha') if ($self->{params}->{alpha} < 0);
+    $img->Flip();
+    $img->Negate( channel => 'Alpha' ) if ( $self->{params}->{alpha} < 0 );
 
-  my($w,$h) = $img->Get('width','height');
-  my $pixels = $w * $h;
-  my $elements = $pixels * $self->{params}->{components};
+    my ( $w, $h ) = $img->Get( 'width', 'height' );
+    my $pixels   = $w * $h;
+    my $elements = $pixels * $self->{params}->{components};
 
-  if ($self->{blobs})
-  {
-    $img->Set(magick=>'RGBA',depth=>8);
+    if ( $self->{blobs} ) {
+        $img->Set( magick => 'RGBA', depth => 8 );
 
-    $self->{oga} = OpenGL::Array->new_scalar($self->{params}->{gl_type},
-      $img->ImageToBlob(),$elements);
-  }
+        $self->{oga} = OpenGL::Array->new_scalar( $self->{params}->{gl_type}, $img->ImageToBlob(), $elements );
+    }
 
-  if ($w == $self->{params}->{width} && $h == $self->{params}->{height})
-  {
-    return if ($self->{blobs});
-    $self->{oga}->update_pointer($img->GetImagePixels(rows=>$h));
-  }
+    if ( $w == $self->{params}->{width} && $h == $self->{params}->{height} ) {
+        return if ( $self->{blobs} );
+        $self->{oga}->update_pointer( $img->GetImagePixels( rows => $h ) );
+    }
 
-  $self->{params}->{width} = $w;
-  $self->{params}->{height} = $h;
-  $self->{params}->{pixels} = $pixels; 
-  $self->{params}->{length} = $elements * $self->{params}->{size};
+    $self->{params}->{width}  = $w;
+    $self->{params}->{height} = $h;
+    $self->{params}->{pixels} = $pixels;
+    $self->{params}->{length} = $elements * $self->{params}->{size};
 
-  return if ($self->{blobs});
+    return if ( $self->{blobs} );
 
-  $self->{oga} = OpenGL::Array->new_pointer($self->{params}->{gl_type},
-    $img->GetImagePixels(rows=>$h),$elements);
+    $self->{oga} =
+      OpenGL::Array->new_pointer( $self->{params}->{gl_type}, $img->GetImagePixels( rows => $h ), $elements );
 }
 
 # Get OpenGL::Array object
-sub GetArray
-{
-  my($self) = @_;
-  return $self->{oga};
+sub GetArray {
+    my ( $self ) = @_;
+    return $self->{oga};
 }
 
 # Get C pointer to image cache
-sub Ptr
-{
-  my($self) = @_;
-  return undef if (!$self->{oga});
-  return $self->{oga}->ptr();
+sub Ptr {
+    my ( $self ) = @_;
+    return undef if ( !$self->{oga} );
+    return $self->{oga}->ptr();
 }
 
 # Save image
-sub Save
-{
-  my($self,$file,%user_params) = @_;
-  my $img = $self->{native};
+sub Save {
+    my ( $self, $file, %user_params ) = @_;
+    my $img = $self->{native};
 
-  $self->Sync();
+    $self->Sync();
 
-  my $blob;
-  if ($file)
-  {
-    if ($self->{blobs} && $img->[1])
-    {
-      $img->[1]->Write(filename=>$file,%user_params);
+    my $blob;
+    if ( $file ) {
+        if ( $self->{blobs} && $img->[1] ) {
+            $img->[1]->Write( filename => $file, %user_params );
+        }
+        else {
+            $img->[0]->Write( filename => $file, %user_params );
+        }
     }
-    else
-    {
-      $img->[0]->Write(filename=>$file,%user_params);
+    else {
+        %user_params = ( magick => 'RGBA', depth => 8 ) if ( !scalar( %user_params ) );
+        delete( $user_params{filename} );
+
+        my $clone = $img->Clone();
+        $clone->Set( %user_params );
+        ( $blob ) = $clone->ImageToBlob();
     }
-  }
-  else
-  {
-    %user_params = (magick=>'RGBA',depth=>8) if (!scalar(%user_params));
-    delete($user_params{filename});
 
-    my $clone = $img->Clone();
-    $clone->Set(%user_params);
-    ($blob) = $clone->ImageToBlob();
-  }
+    $self->SyncOGA();
 
-  $self->SyncOGA();
-
-  return $blob;
+    return $blob;
 }
 
 # Get image blob
-sub GetBlob
-{
-  my($self,%params) = @_;
-  return $self->Save(undef,%params);
+sub GetBlob {
+    my ( $self, %params ) = @_;
+    return $self->Save( undef, %params );
 }
 
 1;

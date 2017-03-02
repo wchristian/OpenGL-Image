@@ -19,8 +19,6 @@ $VERSION = '1.01';
 
 @ISA = qw(Exporter);
 
-
-
 =head1 NAME
 
   OpenGL::Image::Common - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
@@ -145,156 +143,138 @@ $VERSION = '1.01';
 
 =cut
 
-
 # Base constructor
-sub new
-{
-  my $this = shift;
-  my $class = ref($this) || $this;
-  my %params = @_;
-  my $self = {params=>\%params};
-  bless($self,$class);
+sub new {
+    my $this   = shift;
+    my $class  = ref( $this ) || $this;
+    my %params = @_;
+    my $self   = { params => \%params };
+    bless( $self, $class );
 
-  # Save CPU endian-ness as default
-  $self->{params}->{endian} = unpack("h*", pack("s", 1)) =~ /01/ || 0;
+    # Save CPU endian-ness as default
+    $self->{params}->{endian} = unpack( "h*", pack( "s", 1 ) ) =~ /01/ || 0;
 
-  return $self;
+    return $self;
 }
 
 # Return engine's native object
-sub Native
-{
-  my($self) = @_;
-  return $self->{native};
+sub Native {
+    my ( $self ) = @_;
+    return $self->{native};
 }
 
 # Test for Power of 2
-sub IsPowerOf2
-{
-  my($self,@values) = @_;
+sub IsPowerOf2 {
+    my ( $self, @values ) = @_;
 
-  if (!scalar(@values))
-  {
-    my $params = $self->{params};
-    return 0 if (!$params->{width} || !$params->{height});
-    @values = ($params->{width},$params->{height});
-  }
+    if ( !scalar( @values ) ) {
+        my $params = $self->{params};
+        return 0 if ( !$params->{width} || !$params->{height} );
+        @values = ( $params->{width}, $params->{height} );
+    }
 
-  foreach my $value (@values)
-  {
-    return 0 if (!po2($value));
-  }
-  return 1;
+    foreach my $value ( @values ) {
+        return 0 if ( !po2( $value ) );
+    }
+    return 1;
 }
-sub po2
-{
-  my($value) = @_;
 
-  while ($value)
-  {
-    return 1 if ($value == 1);
-    return 0 if ($value & 1);
-    $value >>= 1;
-  }
-  return 0;
+sub po2 {
+    my ( $value ) = @_;
+
+    while ( $value ) {
+        return 1 if ( $value == 1 );
+        return 0 if ( $value & 1 );
+        $value >>= 1;
+    }
+    return 0;
 }
-sub GetPowerOf2
-{
-  my($self,@values) = @_;
 
-  if (!scalar(@values))
-  {
-    my $params = $self->{params};
-    return 0 if (!$params->{width} || !$params->{height});
-    @values = ($params->{width},$params->{height});
-  }
-  my($value) = sort(@values);
+sub GetPowerOf2 {
+    my ( $self, @values ) = @_;
 
-  my $size = 0;
-  while ($value)
-  {
-    $size++;
-    $value >>= 1;
-  }
-  return $size ? 2**($size-1) : 0;
+    if ( !scalar( @values ) ) {
+        my $params = $self->{params};
+        return 0 if ( !$params->{width} || !$params->{height} );
+        @values = ( $params->{width}, $params->{height} );
+    }
+    my ( $value ) = sort( @values );
+
+    my $size = 0;
+    while ( $value ) {
+        $size++;
+        $value >>= 1;
+    }
+    return $size ? 2**( $size - 1 ) : 0;
 }
 
 # Get parameter values
-sub Get
-{
-  my($self,@params) = @_;
-  return $self->{params} if (!scalar(@params));
+sub Get {
+    my ( $self, @params ) = @_;
+    return $self->{params} if ( !scalar( @params ) );
 
-  my @values = ();
-  foreach my $param (@params)
-  {
-    push(@values,$self->{params}->{$param});
-  }
+    my @values = ();
+    foreach my $param ( @params ) {
+        push( @values, $self->{params}->{$param} );
+    }
 
-  return @values;
+    return @values;
 }
 
 # Get normalized pixels
-sub GetPixel
-{
-  my($self,$x,$y,$count) = @_;
+sub GetPixel {
+    my ( $self, $x, $y, $count ) = @_;
 
-  my $w = $self->{params}->{width};
-  my $c = $self->{params}->{components};
-  my $s = $self->{params}->{size};
-  my $n = (1 << ($s * 8)) - 1;
+    my $w = $self->{params}->{width};
+    my $c = $self->{params}->{components};
+    my $s = $self->{params}->{size};
+    my $n = ( 1 << ( $s * 8 ) ) - 1;
 
-  my $pos = ($y * $w + $x) * $c;
-  my $len = $c * ($count || 1);
+    my $pos = ( $y * $w + $x ) * $c;
+    my $len = $c * ( $count || 1 );
 
-  my @pad = ();
-  push(@pad,0) if ($c < 2);
-  push(@pad,0) if ($c < 3);
-  push(@pad,1) if ($c < 4);
+    my @pad = ();
+    push( @pad, 0 ) if ( $c < 2 );
+    push( @pad, 0 ) if ( $c < 3 );
+    push( @pad, 1 ) if ( $c < 4 );
 
-  my $i = 0;
-  my @pixels = ();
-  my @data = $self->{oga}->retrieve($pos,$len);
-  foreach my $value (@data)
-  {
-    push(@pixels,$value/$n);
+    my $i      = 0;
+    my @pixels = ();
+    my @data   = $self->{oga}->retrieve( $pos, $len );
+    foreach my $value ( @data ) {
+        push( @pixels, $value / $n );
 
-    if ($c < 4)
-    {
-      my $e = $i++ % $c;
-      push(@pixels,@pad) if ($e == $c-1);
+        if ( $c < 4 ) {
+            my $e = $i++ % $c;
+            push( @pixels, @pad ) if ( $e == $c - 1 );
+        }
     }
-  }
 
-  return @pixels;
+    return @pixels;
 }
 
 # Set normalized pixels
-sub SetPixel
-{
-  my($self,$x,$y,@values) = @_;
+sub SetPixel {
+    my ( $self, $x, $y, @values ) = @_;
 
-  my $w = $self->{params}->{width};
-  my $c = $self->{params}->{components};
-  my $s = $self->{params}->{size};
-  my $n = (1 << ($s * 8)) - 1;
+    my $w = $self->{params}->{width};
+    my $c = $self->{params}->{components};
+    my $s = $self->{params}->{size};
+    my $n = ( 1 << ( $s * 8 ) ) - 1;
 
-  my $pos = ($y * $w + $x) * $c;
+    my $pos = ( $y * $w + $x ) * $c;
 
-  my $i = 0;
-  my @data = ();
-  foreach my $value (@values)
-  {
-    if ($c < 4)
-    {
-      my $e = $i++ % $c;
-      next if ($e >= $c-1);
+    my $i    = 0;
+    my @data = ();
+    foreach my $value ( @values ) {
+        if ( $c < 4 ) {
+            my $e = $i++ % $c;
+            next if ( $e >= $c - 1 );
+        }
+        push( @data, int( .5 + $value * $n ) );
     }
-    push(@data,int(.5+$value*$n));
-  }
-  $self->{oga}->assign($pos,@data);
+    $self->{oga}->assign( $pos, @data );
 }
-
 
 1;
 __END__

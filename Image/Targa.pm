@@ -24,9 +24,7 @@ May be used as a prototype for other imaging drivers};
 use OpenGL::Image::Common;
 @ISA = qw(Exporter OpenGL::Image::Common);
 
-use OpenGL(':constants');
-
-
+use OpenGL( ':constants' );
 
 =head1 NAME
 
@@ -135,277 +133,251 @@ use OpenGL(':constants');
 
 =cut
 
-
 # Get engine version
-sub EngineVersion
-{
-  return $VERSION;
+sub EngineVersion {
+    return $VERSION;
 }
 
 # Get engine description
-sub EngineDescription
-{
-  return $DESCRIPTION;
+sub EngineDescription {
+    return $DESCRIPTION;
 }
 
 # Base constructor
-sub new
-{
-  my $this = shift;
-  my $class = ref($this) || $this;
+sub new {
+    my $this = shift;
+    my $class = ref( $this ) || $this;
 
-  my $self = new OpenGL::Image::Common(@_);
-  return undef if (!$self);
-  bless($self,$class);
+    my $self = new OpenGL::Image::Common( @_ );
+    return undef if ( !$self );
+    bless( $self, $class );
 
-  $self->{native} = undef;
+    $self->{native} = undef;
 
-  my $params = $self->{params};
-  $params->{engine} = 'Targa';
-  $params->{version} = $VERSION;
+    my $params = $self->{params};
+    $params->{engine}  = 'Targa';
+    $params->{version} = $VERSION;
 
-  $params->{gl_internalformat} = GL_RGBA8;
-  $params->{gl_format} = $params->{endian} ? GL_RGBA : GL_BGRA;
-  $params->{gl_type} = GL_UNSIGNED_BYTE;
-  $params->{alpha} = 1;
-  $params->{components} = 4;
-  $params->{flipped} = 0;
-  $params->{size} = 1;
+    $params->{gl_internalformat} = GL_RGBA8;
+    $params->{gl_format}         = $params->{endian} ? GL_RGBA : GL_BGRA;
+    $params->{gl_type}           = GL_UNSIGNED_BYTE;
+    $params->{alpha}             = 1;
+    $params->{components}        = 4;
+    $params->{flipped}           = 0;
+    $params->{size}              = 1;
 
-  my $blob = '';
-  my $file = $params->{source};
-  if ($file)
-  {
-    return undef if (!-e $file);
-    $blob = $self->read_file($file);
-  }
-  else
-  {
-    $blob = $self->init();
-  }
-  return undef if (!$blob);
+    my $blob = '';
+    my $file = $params->{source};
+    if ( $file ) {
+        return undef if ( !-e $file );
+        $blob = $self->read_file( $file );
+    }
+    else {
+        $blob = $self->init();
+    }
+    return undef if ( !$blob );
 
-  $self->{oga} = OpenGL::Array->new_scalar(GL_UNSIGNED_BYTE,$blob,length($blob));
-  return undef if (!$self->{oga});
+    $self->{oga} = OpenGL::Array->new_scalar( GL_UNSIGNED_BYTE, $blob, length( $blob ) );
+    return undef if ( !$self->{oga} );
 
-  return $self;
+    return $self;
 }
 
 # read file
-sub read_file
-{
-  my($self,$file) = @_;
-  return undef if (!open(FILE,$file));
-  binmode(FILE);
+sub read_file {
+    my ( $self, $file ) = @_;
+    return undef if ( !open( FILE, $file ) );
+    binmode( FILE );
 
-  my $buf;
-  my $len = read(FILE,$buf,18);
-  if ($len != 18)
-  {
-    close(FILE);
-    return undef;
-  }
+    my $buf;
+    my $len = read( FILE, $buf, 18 );
+    if ( $len != 18 ) {
+        close( FILE );
+        return undef;
+    }
 
-  # Parse header
-  my
-  (
-    $id_len,    # byte
-    $cmap_type, # byte
-    $image_type,# byte
-    $cmap_org,  # short
-    $cmap_len,  # short
-    $cmap_size, # byte
-    $x_org,     # short
-    $y_org,     # short
-    $w,         # short
-    $h,         # short
-    $pix_size,  # byte
-    $pix_attrs  # byte
-  ) = unpack('C C C S S C S S S S C C',$buf);
+    # Parse header
+    my (
+        $id_len,        # byte
+        $cmap_type,     # byte
+        $image_type,    # byte
+        $cmap_org,      # short
+        $cmap_len,      # short
+        $cmap_size,     # byte
+        $x_org,         # short
+        $y_org,         # short
+        $w,             # short
+        $h,             # short
+        $pix_size,      # byte
+        $pix_attrs      # byte
+    ) = unpack( 'C C C S S C S S S S C C', $buf );
 
-  # Check for cmap
-  if ($cmap_type)
-  {
-    close(FILE);
-    return undef;
-  }
+    # Check for cmap
+    if ( $cmap_type ) {
+        close( FILE );
+        return undef;
+    }
 
-  # Only supporting 24 bit RGB or 32 bit RGBA at this time
-  if (!($pix_size == 32 && $pix_attrs == 8) &&
-    !($pix_size == 24 || $pix_attrs == 0))
-  {
-    close(FILE);
-    return undef;
-  }
-
-  # read file identifier, if any
-  if ($id_len)
-  {
-    $len = read(FILE,$buf,$id_len);
-    return close(FILE) if ($len != $id_len);
-  }
-
-  # Save file attrs
-  my $params = $self->{params};
-  $params->{width} = $w;
-  $params->{height} = $h;
-  $params->{pixels} = $w * $h;
-  my $data_len = $w * $h * 4;
-  $params->{length} = $data_len;
-  $buf = '';
-
-  # Handle runlength-encoded RGB
-  if ($image_type == 10)
-  {
-    my($data,$count,$rle);
-    my $size = $pix_size / 8;
-    $len = 0;
-
-    while (($len < $data_len) && (read(FILE,$data,1) == 1))
+    # Only supporting 24 bit RGB or 32 bit RGBA at this time
+    if (   !( $pix_size == 32 && $pix_attrs == 8 )
+        && !( $pix_size == 24 || $pix_attrs == 0 ) )
     {
-      $count = ord($data);
-      $rle = $count & 128;
+        close( FILE );
+        return undef;
+    }
 
-      if ($rle)
-      {
-        $count &= 127;
-        $count++;
-        last if (read(FILE,$data,$size) != $size);
-        $data .= chr(0xFF) if ($size != 4);
-        $buf .= $data x $count;
-        $len += $count * 4;
-      }
-      # Raw 32 bit pixels
-      elsif ($pix_size == 32)
-      {
-        $count++;
-        $count *= 4;
-        last if (read(FILE,$data,$count) != $count);
-        $buf .= $data;
-        $len += $count;
-      }
-      # Raw 24 bit pixels
-      else
-      {
-        $count++;
-        $len += $count * 4;
-        for (my $i=0; $i<$count; $i++)
-        {
-          last if (3 != read(FILE,$data,3));
-          $buf .= $data.chr(0xFF);
+    # read file identifier, if any
+    if ( $id_len ) {
+        $len = read( FILE, $buf, $id_len );
+        return close( FILE ) if ( $len != $id_len );
+    }
+
+    # Save file attrs
+    my $params = $self->{params};
+    $params->{width}  = $w;
+    $params->{height} = $h;
+    $params->{pixels} = $w * $h;
+    my $data_len = $w * $h * 4;
+    $params->{length} = $data_len;
+    $buf = '';
+
+    # Handle runlength-encoded RGB
+    if ( $image_type == 10 ) {
+        my ( $data, $count, $rle );
+        my $size = $pix_size / 8;
+        $len = 0;
+
+        while ( ( $len < $data_len ) && ( read( FILE, $data, 1 ) == 1 ) ) {
+            $count = ord( $data );
+            $rle   = $count & 128;
+
+            if ( $rle ) {
+                $count &= 127;
+                $count++;
+                last if ( read( FILE, $data, $size ) != $size );
+                $data .= chr( 0xFF ) if ( $size != 4 );
+                $buf .= $data x $count;
+                $len += $count * 4;
+            }
+
+            # Raw 32 bit pixels
+            elsif ( $pix_size == 32 ) {
+                $count++;
+                $count *= 4;
+                last if ( read( FILE, $data, $count ) != $count );
+                $buf .= $data;
+                $len += $count;
+            }
+
+            # Raw 24 bit pixels
+            else {
+                $count++;
+                $len += $count * 4;
+                for ( my $i = 0 ; $i < $count ; $i++ ) {
+                    last if ( 3 != read( FILE, $data, 3 ) );
+                    $buf .= $data . chr( 0xFF );
+                }
+            }
         }
-      }
     }
-  }
-  # Unsupported image type
-  elsif ($image_type != 2)
-  {
-    close(FILE);
-    return undef;
-  }
-  # Read 32 bit images
-  elsif ($pix_size == 32)
-  {
-    $len = read(FILE,$buf,$data_len);
-  }
-  # Read 24 bit images; add alpha channel
-  else
-  {
-    my $pixel;
-    for (my $i=0; $i<$w*$h; $i++)
-    {
-      last if (3 != read(FILE,$pixel,3));
-      $buf .= $pixel.chr(0xFF);
-    }
-    $len = length($buf);
-  }
-  close(FILE);
 
-  # Pad out buffer if it's short
-  if ($len < $data_len)
-  {
-    my $pixel = chr(0) x 4;
-    $buf .= $pixel x ($data_len - $len);
-  }
-  return $buf;
+    # Unsupported image type
+    elsif ( $image_type != 2 ) {
+        close( FILE );
+        return undef;
+    }
+
+    # Read 32 bit images
+    elsif ( $pix_size == 32 ) {
+        $len = read( FILE, $buf, $data_len );
+    }
+
+    # Read 24 bit images; add alpha channel
+    else {
+        my $pixel;
+        for ( my $i = 0 ; $i < $w * $h ; $i++ ) {
+            last if ( 3 != read( FILE, $pixel, 3 ) );
+            $buf .= $pixel . chr( 0xFF );
+        }
+        $len = length( $buf );
+    }
+    close( FILE );
+
+    # Pad out buffer if it's short
+    if ( $len < $data_len ) {
+        my $pixel = chr( 0 ) x 4;
+        $buf .= $pixel x ( $data_len - $len );
+    }
+    return $buf;
 }
 
 # Initialize empty blob
-sub init
-{
-  my($self) = @_;
-  my $params = $self->{params};
+sub init {
+    my ( $self ) = @_;
+    my $params = $self->{params};
 
-  my $w = $params->{width};
-  my $h = $params->{height};
-  $params->{pixels} = $w * $h; 
+    my $w = $params->{width};
+    my $h = $params->{height};
+    $params->{pixels} = $w * $h;
 
-  my $buf;
-  my $pix = pack('C C C C', 0, 0, 0, 255);
-  for (my $i=0; $i<$params->{pixels}; $i++)
-  {
-    $buf .= $pix;
-  }
-  return $buf;
+    my $buf;
+    my $pix = pack( 'C C C C', 0, 0, 0, 255 );
+    for ( my $i = 0 ; $i < $params->{pixels} ; $i++ ) {
+        $buf .= $pix;
+    }
+    return $buf;
 }
 
 # Sync image cache
-sub Sync
-{
-  return undef;
+sub Sync {
+    return undef;
 }
 
 # Sync oga
-sub SyncOGA
-{
-  return undef;
+sub SyncOGA {
+    return undef;
 }
 
 # Get OpenGL::Array object
-sub GetArray
-{
-  my($self) = @_;
-  return $self->{oga};
+sub GetArray {
+    my ( $self ) = @_;
+    return $self->{oga};
 }
 
 # Get C pointer to image cache
-sub Ptr
-{
-  my($self) = @_;
-  return undef if (!$self->{oga});
-  return $self->{oga}->ptr();
+sub Ptr {
+    my ( $self ) = @_;
+    return undef if ( !$self->{oga} );
+    return $self->{oga}->ptr();
 }
 
 # Save image
-sub Save
-{
-  my($self,$file) = @_;
-  return undef if (!$file);
+sub Save {
+    my ( $self, $file ) = @_;
+    return undef if ( !$file );
 
-  my $blob = $self->GetBlob();
-  return undef if (!$blob);
+    my $blob = $self->GetBlob();
+    return undef if ( !$blob );
 
-  return undef if (!open(FILE,">$file"));
-  binmode(FILE);
+    return undef if ( !open( FILE, ">$file" ) );
+    binmode( FILE );
 
-  my $params = $self->{params};
-  my $w = $params->{width};
-  my $h = $params->{height};
+    my $params = $self->{params};
+    my $w      = $params->{width};
+    my $h      = $params->{height};
 
-  my $hdr = pack('C C C S S C S S S S C C',
-    0, 0, 2, 0, 0, 0, 0, 0, $w, $h, 32, 8);
+    my $hdr = pack( 'C C C S S C S S S S C C', 0, 0, 2, 0, 0, 0, 0, 0, $w, $h, 32, 8 );
 
-  print FILE $hdr.$blob;
-  close(FILE);
+    print FILE $hdr . $blob;
+    close( FILE );
 
-  return $blob;
+    return $blob;
 }
 
 # Get image blob
-sub GetBlob
-{
-  my($self) = @_;
-  return $self->{oga}->retrieve_data();
+sub GetBlob {
+    my ( $self ) = @_;
+    return $self->{oga}->retrieve_data();
 }
 
 1;
