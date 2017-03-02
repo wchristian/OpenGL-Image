@@ -11,17 +11,14 @@
 ### SEE DOCS IN Image.pod
 
 package OpenGL::Image;
+use strictures;
+use Carp;
+use Capture::Tiny 'capture';
+use vars qw($VERSION @ISA);
 
 require Exporter;
-
-use strict;
-use warnings;
-use Carp;
-
-use vars qw($VERSION @ISA);
 $VERSION = '1.03';
-
-@ISA = qw(Exporter);
+@ISA     = qw(Exporter);
 
 # Return hashref of installed imaging engines
 # Use OpenGL/Image/Engines.lst if exists
@@ -33,22 +30,22 @@ sub GetEngines {
 
     # Use engine list if exists
     my $list = "$dir/Engines.lst";
-    if ( open( LIST, $list ) ) {
-        foreach my $engine ( <LIST> ) {
+    if ( open( my $LIST, $list ) ) {
+        foreach my $engine ( <$LIST> ) {
             $engine =~ s|[\r\n]+||g;
             next if ( !-e "$dir/$engine.pm" );
             push( @engines, $engine );
         }
-        close( LIST );
+        close( $LIST );
     }
 
     # Otherwise grab OpenGL/Image modules
-    elsif ( opendir( DIR, $dir ) ) {
-        foreach my $engine ( readdir( DIR ) ) {
+    elsif ( opendir( my $DIR, $dir ) ) {
+        foreach my $engine ( readdir( $DIR ) ) {
             next if ( $engine !~ s|\.pm$|| );
             push( @engines, $engine );
         }
-        closedir( DIR );
+        closedir( $DIR );
 
         # Targa engine gets priority when no Engines.lst exists
         @engines = ( ( grep { $_ eq 'Targa' } @engines ), grep { $_ ne 'Targa' } @engines );
@@ -83,21 +80,14 @@ sub HasEngine {
     my ( $version, $desc );
     my $module = GetEngineModule( $engine );
 
-    # Redirect Perl errors if module can't be loaded
-    open( OLD_STDERR, ">&STDERR" );
-    close( STDERR );
-
-    my $exec = qq
-  {
-    use $module;
-    \$version = $module\::EngineVersion();
-    \$desc = $module\::EngineDescription();
-  };
-    eval( $exec );
-
-    # Restore STDERR
-    open( STDERR, ">&OLD_STDERR" );
-    close( OLD_STDERR );
+    capture {
+        my $exec = qq{
+            use $module;
+            \$version = $module\::EngineVersion();
+            \$desc = $module\::EngineDescription();
+        };
+        eval( $exec );
+    };
 
     return if ( !$version );
     return if ( $min_ver && $version lt $min_ver );

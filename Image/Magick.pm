@@ -10,21 +10,17 @@
 
 package OpenGL::Image::Magick;
 use strictures;
+use Carp;
+use vars qw($VERSION $DESCRIPTION @ISA);
+use OpenGL::Image::Common;
+use OpenGL( ':constants' );
 
 require Exporter;
-
-use Carp;
-
-use vars qw($VERSION $DESCRIPTION @ISA);
-$VERSION = '1.02';
-
+$VERSION     = '1.02';
 $DESCRIPTION = qq
 {Supports optimized internal interfaces to the ImageMagick library.};
-
-use OpenGL::Image::Common;
 @ISA = qw(Exporter OpenGL::Image::Common);
-
-use OpenGL( ':constants' );
+eval 'use Image::Magick';
 
 =head1 NAME
 
@@ -142,8 +138,6 @@ use OpenGL( ':constants' );
   my $blob = $img->GetBlob();
 
 =cut
-
-eval 'use Image::Magick';
 
 # Get engine version
 sub EngineVersion {

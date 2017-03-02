@@ -10,22 +10,17 @@
 
 package OpenGL::Image::Targa;
 use strictures;
+use Carp;
+use vars qw($VERSION $DESCRIPTION @ISA);
+use OpenGL::Image::Common;
+use OpenGL( ':constants' );
 
 require Exporter;
-
-use Carp;
-
-use vars qw($VERSION $DESCRIPTION @ISA);
-$VERSION = '1.01';
-
+$VERSION     = '1.01';
 $DESCRIPTION = qq
 {Supports uncompressed RGBA files; default engine driver.
 May be used as a prototype for other imaging drivers};
-
-use OpenGL::Image::Common;
 @ISA = qw(Exporter OpenGL::Image::Common);
-
-use OpenGL( ':constants' );
 
 =head1 NAME
 
@@ -187,13 +182,13 @@ sub new {
 # read file
 sub read_file {
     my ( $self, $file ) = @_;
-    return undef if ( !open( FILE, $file ) );
-    binmode( FILE );
+    return undef if ( !open( my $FILE, $file ) );
+    binmode( $FILE );
 
     my $buf;
-    my $len = read( FILE, $buf, 18 );
+    my $len = read( $FILE, $buf, 18 );
     if ( $len != 18 ) {
-        close( FILE );
+        close( $FILE );
         return undef;
     }
 
@@ -215,7 +210,7 @@ sub read_file {
 
     # Check for cmap
     if ( $cmap_type ) {
-        close( FILE );
+        close( $FILE );
         return undef;
     }
 
@@ -223,14 +218,14 @@ sub read_file {
     if (   !( $pix_size == 32 && $pix_attrs == 8 )
         && !( $pix_size == 24 || $pix_attrs == 0 ) )
     {
-        close( FILE );
+        close( $FILE );
         return undef;
     }
 
     # read file identifier, if any
     if ( $id_len ) {
-        $len = read( FILE, $buf, $id_len );
-        return close( FILE ) if ( $len != $id_len );
+        $len = read( $FILE, $buf, $id_len );
+        return close( $FILE ) if ( $len != $id_len );
     }
 
     # Save file attrs
@@ -248,14 +243,14 @@ sub read_file {
         my $size = $pix_size / 8;
         $len = 0;
 
-        while ( ( $len < $data_len ) && ( read( FILE, $data, 1 ) == 1 ) ) {
+        while ( ( $len < $data_len ) && ( read( $FILE, $data, 1 ) == 1 ) ) {
             $count = ord( $data );
             $rle   = $count & 128;
 
             if ( $rle ) {
                 $count &= 127;
                 $count++;
-                last if ( read( FILE, $data, $size ) != $size );
+                last if ( read( $FILE, $data, $size ) != $size );
                 $data .= chr( 0xFF ) if ( $size != 4 );
                 $buf .= $data x $count;
                 $len += $count * 4;
@@ -265,7 +260,7 @@ sub read_file {
             elsif ( $pix_size == 32 ) {
                 $count++;
                 $count *= 4;
-                last if ( read( FILE, $data, $count ) != $count );
+                last if ( read( $FILE, $data, $count ) != $count );
                 $buf .= $data;
                 $len += $count;
             }
@@ -275,7 +270,7 @@ sub read_file {
                 $count++;
                 $len += $count * 4;
                 for ( my $i = 0 ; $i < $count ; $i++ ) {
-                    last if ( 3 != read( FILE, $data, 3 ) );
+                    last if ( 3 != read( $FILE, $data, 3 ) );
                     $buf .= $data . chr( 0xFF );
                 }
             }
@@ -284,25 +279,25 @@ sub read_file {
 
     # Unsupported image type
     elsif ( $image_type != 2 ) {
-        close( FILE );
+        close( $FILE );
         return undef;
     }
 
     # Read 32 bit images
     elsif ( $pix_size == 32 ) {
-        $len = read( FILE, $buf, $data_len );
+        $len = read( $FILE, $buf, $data_len );
     }
 
     # Read 24 bit images; add alpha channel
     else {
         my $pixel;
         for ( my $i = 0 ; $i < $w * $h ; $i++ ) {
-            last if ( 3 != read( FILE, $pixel, 3 ) );
+            last if ( 3 != read( $FILE, $pixel, 3 ) );
             $buf .= $pixel . chr( 0xFF );
         }
         $len = length( $buf );
     }
-    close( FILE );
+    close( $FILE );
 
     # Pad out buffer if it's short
     if ( $len < $data_len ) {
@@ -360,8 +355,8 @@ sub Save {
     my $blob = $self->GetBlob();
     return undef if ( !$blob );
 
-    return undef if ( !open( FILE, ">$file" ) );
-    binmode( FILE );
+    return undef if ( !open( my $FILE, ">$file" ) );
+    binmode( $FILE );
 
     my $params = $self->{params};
     my $w      = $params->{width};
@@ -369,8 +364,8 @@ sub Save {
 
     my $hdr = pack( 'C C C S S C S S S S C C', 0, 0, 2, 0, 0, 0, 0, 0, $w, $h, 32, 8 );
 
-    print FILE $hdr . $blob;
-    close( FILE );
+    print $FILE $hdr . $blob;
+    close( $FILE );
 
     return $blob;
 }

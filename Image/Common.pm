@@ -9,15 +9,13 @@
 ############################################################
 
 package OpenGL::Image::Common;
+use strictures;
+use Carp;
+use vars qw($VERSION @ISA);
 
 require Exporter;
-
-use Carp;
-
-use vars qw($VERSION @ISA);
 $VERSION = '1.01';
-
-@ISA = qw(Exporter);
+@ISA     = qw(Exporter);
 
 =head1 NAME
 

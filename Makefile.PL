@@ -1,3 +1,4 @@
+use strictures;
 use 5.006001;
 use ExtUtils::MakeMaker;
 
@@ -8,8 +9,11 @@ WriteMakefile(
     NAME         => 'OpenGL::Image',
     DISTNAME     => 'OpenGL-Image',
     VERSION_FROM => 'Image.pm',
-    PREREQ_PM    => { OpenGL => '0.55_03' },
-    dist         => { COMPRESS => 'gzip', SUFFIX => 'gz' },
+    PREREQ_PM    => {
+        OpenGL          => '0.55_03',
+        'Capture::Tiny' => 0,
+    },
+    dist => { COMPRESS => 'gzip', SUFFIX => 'gz' },
     (
         $] >= 5.005
         ? (

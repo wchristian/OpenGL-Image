@@ -1,5 +1,5 @@
-#!/usr/bin/perl -w
-use strict;
+#!/usr/bin/perl
+use strictures;
 use Math::Trig;
 use OpenGL qw/ :all /;
 use OpenGL::Image;
@@ -187,12 +187,12 @@ sub GetImages {
 
     foreach my $path ( @paths ) {
         if ( -d $path ) {
-            next if ( !opendir( DIR, $path ) );
-            foreach my $file ( readdir( DIR ) ) {
+            next if ( !opendir( my $DIR, $path ) );
+            foreach my $file ( readdir( $DIR ) ) {
                 next if ( $file =~ m|^\.| );
                 push( @images, GetImages( "$path/$file" ) );
             }
-            closedir( DIR );
+            closedir( $DIR );
         }
         else {
             next if ( $path !~ m/\.(jpg|png|gif|tga|bmp)$/ );
@@ -233,7 +233,7 @@ sub LoadNextImage {
     #$path =~ m|[/\\](.*)|;
     #print "Attempting to load: '$1'\n";
 
-    $image = new OpenGL::Image( engine => 'Magick', source => $path );
+    $image = OpenGL::Image->new( engine => 'Magick', source => $path );
     return 0 if ( !$image );
 
     # Resample image if GL_ARB_texture_rectangle not supported
@@ -496,7 +496,7 @@ sub cbKeyPressed {
         LoadNextImage( 1 );
     }
     elsif ( $c eq 'S' ) {
-        my $frame = new OpenGL::Image(
+        my $frame = OpenGL::Image->new(
             engine => 'Magick',
             width  => $wnd_width,
             height => $wnd_height
