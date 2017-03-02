@@ -2,7 +2,7 @@ use strictures;
 use OpenGL( ':all' );
 
 # Images used for testing
-my $src_image = 'test.png';
+my $src_image = 't/test.png';
 my $dst_image = 'test.jpg';
 my $tga_image = 'test.tga';
 my $width     = 128;
@@ -10,7 +10,7 @@ my $height    = 128;
 my $deviation = 0.15;
 
 # Init tests
-my $t = MyTests->new( 26, 'Testing OpenGL::Image' );
+my $t = MyTests->new( 26, 'Testing OpenGL::Modern::Image' );
 
 # Get OpenGL version
 my $pogl_ver     = $OpenGL::VERSION;
@@ -22,12 +22,12 @@ $t->status( "Recommend OpenGL 0.55_03 or newer to use" ) if ( !$has_pogl5503 );
 my $ogi_ver;
 my $exec = qq
 {
-  use OpenGL\::Image;
-  \$ogi_ver = \$OpenGL::Image::VERSION;
+  use OpenGL\::Modern\::Image;
+  \$ogi_ver = \$OpenGL::Modern::Image::VERSION;
 };
 eval( $exec );
-$t->bail( "OpenGL::Image failed to load: $@" ) if ( $@ || !$ogi_ver );
-$t->ok( "OpenGL::Image module loaded: v$ogi_ver" );
+$t->bail( "OpenGL::Modern::Image failed to load: $@" ) if ( $@ || !$ogi_ver );
+$t->ok( "OpenGL::Modern::Image module loaded: v$ogi_ver" );
 
 #2 Get ImageMagick version
 my $im_ver = 0;
@@ -48,8 +48,8 @@ else {
 }
 
 #3 Enumerate installed engines
-$t->status( "Testing OpenGL::Image::GetEngines():" );
-my $engines = OpenGL::Image::GetEngines();
+$t->status( "Testing OpenGL::Modern::Image::GetEngines():" );
+my $engines = OpenGL::Modern::Image::GetEngines();
 my @engines = keys( %$engines );
 $t->bail( "No imaging engines installed!" ) if ( !@engines );
 my $has_TGA   = 0;
@@ -70,7 +70,7 @@ $t->status( 'Magick is ' . ( $has_IM  ? '' : 'NOT ' ) . "installed" );
 $t->ok( "At least one imaging engine is installed" );
 
 #4 Test HasEngine()
-my $engine_ver = OpenGL::Image::HasEngine( $engines[0] )->{version};
+my $engine_ver = OpenGL::Modern::Image::HasEngine( $engines[0] )->{version};
 $t->bail( "HasEngine('$engines[0]') failed to return a version" ) if ( !$engine_ver );
 $t->ok( "HasEngine('$engines[0]') returned '$engine_ver'" );
 
@@ -81,9 +81,9 @@ $t->bail( "OpenGL::Array returned invalid element count" ) if ( 4 != $oga->eleme
 $t->ok( "Instantiated OpenGL::Array" );
 
 #6 Test image object instantiation
-my $tga = OpenGL::Image->new( width => $width, height => $height );
-$t->bail( "Unable to instantiate OpenGL::Image" ) if ( !$tga );
-$t->ok( "Instantiated OpenGL::Image(width\=>$width,height\=>$height)" );
+my $tga = OpenGL::Modern::Image->new( width => $width, height => $height );
+$t->bail( "Unable to instantiate OpenGL::Modern::Image" ) if ( !$tga );
+$t->ok( "Instantiated OpenGL::Modern::Image(width\=>$width,height\=>$height)" );
 
 #7 Test Get/Set Pixel
 $tga->SetPixel( 0, 0, 0.1, 0.2, 0.3, 0.4 );
@@ -126,9 +126,9 @@ $t->bail( "Save('$tga_image') failed to create $tga_image" ) if ( !-e $tga_image
 $t->ok( "Save('$tga_image') created image" );
 
 #9 Test image loading
-my $sav = OpenGL::Image->new( source => $tga_image );
-$t->bail( "Unable to instantiate OpenGL::Image" ) if ( !$sav );
-$t->ok( "Instantiated OpenGL::Image(source=>'$tga_image')" );
+my $sav = OpenGL::Modern::Image->new( source => $tga_image );
+$t->bail( "Unable to instantiate OpenGL::Modern::Image" ) if ( !$sav );
+$t->ok( "Instantiated OpenGL::Modern::Image(source=>'$tga_image')" );
 unlink( $tga_image );
 
 #10 Test image parameters
@@ -230,9 +230,9 @@ if ( !$has_IM || !$has_image ) {
 }
 
 #17 Test Loading source image
-my $src = OpenGL::Image->new( engine => 'Magick', source => $src_image );
-$t->bail( "Unable to instantiate OpenGL::Image(engine=>'Magick',source=>'$src_image')" ) if ( !$src );
-$t->ok( "Instantiated OpenGL::Image(engine=>'Magick',source=>'$src_image')" );
+my $src = OpenGL::Modern::Image->new( engine => 'Magick', source => $src_image );
+$t->bail( "Unable to instantiate OpenGL::Modern::Image(engine=>'Magick',source=>'$src_image')" ) if ( !$src );
+$t->ok( "Instantiated OpenGL::Modern::Image(engine=>'Magick',source=>'$src_image')" );
 
 #18 Test source image size
 my ( $ws, $hs, $ps, $cs, $ss ) = $src->Get( 'width', 'height', 'pixels', 'components', 'size' );
@@ -252,9 +252,9 @@ $t->bail( "Save('$dst_image') failed to create file" ) if ( !-e $dst_image );
 $t->ok( "Save('$dst_image') created image" );
 
 #20 Test Loading destination image
-my $dst = OpenGL::Image->new( engine => 'Magick', source => $dst_image );
-$t->bail( "Unable to instantiate OpenGL::Image(engine=>'Magick',source=>'$dst_image')" ) if ( !$dst );
-$t->ok( "Instantiated OpenGL::Image(engine=>'Magick',source=>'$dst_image')" );
+my $dst = OpenGL::Modern::Image->new( engine => 'Magick', source => $dst_image );
+$t->bail( "Unable to instantiate OpenGL::Modern::Image(engine=>'Magick',source=>'$dst_image')" ) if ( !$dst );
+$t->ok( "Instantiated OpenGL::Modern::Image(engine=>'Magick',source=>'$dst_image')" );
 unlink( $dst_image );
 
 #21 Test destination image size

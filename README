@@ -8,10 +8,10 @@ with OpenGL textures, FBOs and VBOs.
 
 It requires the OpenGL module - version 0.55_03 or newer.
 
-It also requires at least one supported OpenGL::Image imaging engine.
+It also requires at least one supported OpenGL::Modern::Image imaging engine.
 At this time, the following drivers are supported:
 
-* Targa  - Pure Perl - uncompressed RGBA files (comes with OpenGL::Image).
+* Targa  - Pure Perl - uncompressed RGBA files (comes with OpenGL::Modern::Image).
 * Magick - Requires PerlMagick (v6.3.5 or newer for best performance).
 
 You can find the latest releases and information for installing/using
@@ -20,7 +20,7 @@ http://graphcomp.com/opengl
 
 
 NOTE: as of 1.03, you _must_ call Sync prior to calling native (eg. ImageMagick) APIs
-on an OpenGL::Image object, and call SyncOGA when done with your native calls.
+on an OpenGL::Modern::Image object, and call SyncOGA when done with your native calls.
 
 
 Changes:
@@ -37,7 +37,7 @@ Changes:
 	Cleaned up Image.pod, INSTALL and README.
 
 	Bob "grafman" Free <grafman@graphcomp.com>
-	Fixed version number for OpenGL::Image::Common
+	Fixed version number for OpenGL::Modern::Image::Common
 	Enhanced hex_tile.pl
 	Updated OpenGL-Image.t to reflect Geoff's changes
 

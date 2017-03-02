@@ -1,6 +1,6 @@
 ############################################################
 #
-# OpenGL::Image::Magick - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+# OpenGL::Modern::Image::Magick - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
 # Author: Bob "grafman" Free - grafman@graphcomp.com
 #
 # This program is free software; you can redistribute it and/or
@@ -8,23 +8,23 @@
 #
 ############################################################
 
-package OpenGL::Image::Magick;
+package OpenGL::Modern::Image::Magick;
 use strictures;
 use Carp;
 use vars qw($VERSION $DESCRIPTION @ISA);
-use OpenGL::Image::Common;
+use OpenGL::Modern::Image::Common;
 use OpenGL( ':constants' );
 
 require Exporter;
 $VERSION     = '1.02';
 $DESCRIPTION = qq
 {Supports optimized internal interfaces to the ImageMagick library.};
-@ISA = qw(Exporter OpenGL::Image::Common);
+@ISA = qw(Exporter OpenGL::Modern::Image::Common);
 eval 'use Image::Magick';
 
 =head1 NAME
 
-  OpenGL::Image::Magick - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+  OpenGL::Modern::Image::Magick - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
   Author: Bob "grafman" Free - grafman@graphcomp.com
 
   This program is free software; you can redistribute it and/or
@@ -35,11 +35,11 @@ eval 'use Image::Magick';
 
   This is a driver module for use with the OpenGL module.
   While it may be called directly, it will more often be called
-  by the OpenGL::Image abstraction module.
+  by the OpenGL::Modern::Image abstraction module.
 
-  Note: OpenGL::Image defaults to this module.
+  Note: OpenGL::Modern::Image defaults to this module.
 
-  This is a subclass of the OpenGL::Image::Common module.
+  This is a subclass of the OpenGL::Modern::Image::Common module.
 
   Requires the Image::Magick module; 6.3.5 or newer is recommended.
 
@@ -49,12 +49,12 @@ eval 'use Image::Magick';
   ##########
   # Check for installed imaging engines
 
-  use OpenGL::Image;
-  my $img = new OpenGL::Image(engine=>'Magick',source=>'MyImage.png');
+  use OpenGL::Modern::Image;
+  my $img = new OpenGL::Modern::Image(engine=>'Magick',source=>'MyImage.png');
 
 
   ##########
-  # Methods defined in the OpenGL::Image::Common module:
+  # Methods defined in the OpenGL::Modern::Image::Common module:
 
   # Get native engine object
   # Note: must not change image dimensions
@@ -109,10 +109,10 @@ eval 'use Image::Magick';
   # APIs defined in this module:
 
   # Get engine version
-  my $ver = OpenGL::Image::THIS_MODULE::EngineVersion();
+  my $ver = OpenGL::Modern::Image::THIS_MODULE::EngineVersion();
 
   # Get engine description
-  my $desc = OpenGL::Image::ENGINE_MODULE::EngineDescription();
+  my $desc = OpenGL::Modern::Image::ENGINE_MODULE::EngineDescription();
 
 
   ##########
@@ -154,7 +154,7 @@ sub new {
     my $this = shift;
     my $class = ref( $this ) || $this;
 
-    my $self = OpenGL::Image::Common->new( @_ );
+    my $self = OpenGL::Modern::Image::Common->new( @_ );
     return undef if ( !$self );
 
     $self->{params}->{engine}  = 'Magick';

@@ -2,9 +2,9 @@
 use strictures;
 use Math::Trig;
 use OpenGL qw/ :all /;
-use OpenGL::Image;
+use OpenGL::Modern::Image;
 
-die "Requires ImageMagick\n" if ( !OpenGL::Image::HasEngine( 'Magick' ) );
+die "Requires ImageMagick\n" if ( !OpenGL::Modern::Image::HasEngine( 'Magick' ) );
 
 eval 'use Time::HiRes qw( gettimeofday )';
 my $hasHires = !$@;
@@ -233,7 +233,7 @@ sub LoadNextImage {
     #$path =~ m|[/\\](.*)|;
     #print "Attempting to load: '$1'\n";
 
-    $image = OpenGL::Image->new( engine => 'Magick', source => $path );
+    $image = OpenGL::Modern::Image->new( engine => 'Magick', source => $path );
     return 0 if ( !$image );
 
     # Resample image if GL_ARB_texture_rectangle not supported
@@ -496,7 +496,7 @@ sub cbKeyPressed {
         LoadNextImage( 1 );
     }
     elsif ( $c eq 'S' ) {
-        my $frame = OpenGL::Image->new(
+        my $frame = OpenGL::Modern::Image->new(
             engine => 'Magick',
             width  => $wnd_width,
             height => $wnd_height

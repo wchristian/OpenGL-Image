@@ -1,6 +1,6 @@
 ############################################################
 #
-# OpenGL::Image::Common - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+# OpenGL::Modern::Image::Common - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
 # Author: Bob "grafman" Free - grafman@graphcomp.com
 #
 # This program is free software; you can redistribute it and/or
@@ -8,7 +8,7 @@
 #
 ############################################################
 
-package OpenGL::Image::Common;
+package OpenGL::Modern::Image::Common;
 use strictures;
 use Carp;
 use vars qw($VERSION @ISA);
@@ -19,7 +19,7 @@ $VERSION = '1.01';
 
 =head1 NAME
 
-  OpenGL::Image::Common - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+  OpenGL::Modern::Image::Common - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
   Author: Bob "grafman" Free - grafman@graphcomp.com
 
   This program is free software; you can redistribute it and/or
@@ -37,8 +37,8 @@ $VERSION = '1.01';
   ##########
   # Check for installed imaging engines
 
-  use OpenGL::Image::Common;
-  my $img = new OpenGL::Image::Common(%params);
+  use OpenGL::Modern::Image::Common;
+  my $img = new OpenGL::Modern::Image::Common(%params);
 
 
   ##########
@@ -111,10 +111,10 @@ $VERSION = '1.01';
   # APIs defined in engine modules:
 
   # Get engine version
-  my $ver = OpenGL::Image::ENGINE_MODULE::EngineVersion();
+  my $ver = OpenGL::Modern::Image::ENGINE_MODULE::EngineVersion();
 
   # Get engine description
-  my $desc = OpenGL::Image::ENGINE_MODULE::EngineDescription();
+  my $desc = OpenGL::Modern::Image::ENGINE_MODULE::EngineDescription();
 
 
   ##########

@@ -1,6 +1,6 @@
 ############################################################
 #
-# OpenGL::Image - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+# OpenGL::Modern::Image - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
 # Author: Bob "grafman" Free - grafman@graphcomp.com
 #
 # This program is free software; you can redistribute it and/or
@@ -10,7 +10,7 @@
 
 ### SEE DOCS IN Image.pod
 
-package OpenGL::Image;
+package OpenGL::Modern::Image;
 use strictures;
 use Carp;
 use Capture::Tiny 'capture';

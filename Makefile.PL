@@ -6,9 +6,9 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 
 WriteMakefile(
-    NAME         => 'OpenGL::Image',
-    DISTNAME     => 'OpenGL-Image',
-    VERSION_FROM => 'Image.pm',
+    NAME         => 'OpenGL::Modern::Image',
+    DISTNAME     => 'OpenGL-Modern-Image',
+    VERSION_FROM => 'lib/OpenGL/Modern/Image.pm',
     PREREQ_PM    => {
         OpenGL          => '0.55_03',
         'Capture::Tiny' => 0,

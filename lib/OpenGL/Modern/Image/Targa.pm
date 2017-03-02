@@ -1,6 +1,6 @@
 ############################################################
 #
-# OpenGL::Image::Targa - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+# OpenGL::Modern::Image::Targa - Copyright 2007 Graphcomp - ALL RIGHTS RESERVED
 # Author: Bob "grafman" Free - grafman@graphcomp.com
 #
 # This program is free software; you can redistribute it and/or
@@ -8,11 +8,11 @@
 #
 ############################################################
 
-package OpenGL::Image::Targa;
+package OpenGL::Modern::Image::Targa;
 use strictures;
 use Carp;
 use vars qw($VERSION $DESCRIPTION @ISA);
-use OpenGL::Image::Common;
+use OpenGL::Modern::Image::Common;
 use OpenGL( ':constants' );
 
 require Exporter;
@@ -20,11 +20,11 @@ $VERSION     = '1.01';
 $DESCRIPTION = qq
 {Supports uncompressed RGBA files; default engine driver.
 May be used as a prototype for other imaging drivers};
-@ISA = qw(Exporter OpenGL::Image::Common);
+@ISA = qw(Exporter OpenGL::Modern::Image::Common);
 
 =head1 NAME
 
-  OpenGL::Image::Targa - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
+  OpenGL::Modern::Image::Targa - copyright 2007 Graphcomp - ALL RIGHTS RESERVED
   Author: Bob "grafman" Free - grafman@graphcomp.com
 
   This program is free software; you can redistribute it and/or
@@ -35,9 +35,9 @@ May be used as a prototype for other imaging drivers};
 
   This is a driver module for use with the OpenGL module.
   While it may be called directly, it will more often be called
-  by the OpenGL::Image abstraction module.
+  by the OpenGL::Modern::Image abstraction module.
 
-  This is a subclass of the OpenGL::Image::Common module.
+  This is a subclass of the OpenGL::Modern::Image::Common module.
 
 
 =head1 SYNOPSIS
@@ -45,12 +45,12 @@ May be used as a prototype for other imaging drivers};
   ##########
   # Check for installed imaging engines
 
-  use OpenGL::Image;
-  my $img = new OpenGL::Image(engine=>'Targa',source=>'MyImage.tga');
+  use OpenGL::Modern::Image;
+  my $img = new OpenGL::Modern::Image(engine=>'Targa',source=>'MyImage.tga');
 
 
   ##########
-  # Methods defined in the OpenGL::Image::Common module:
+  # Methods defined in the OpenGL::Modern::Image::Common module:
 
   # Get native engine object
   # Note: No native Targa object
@@ -100,10 +100,10 @@ May be used as a prototype for other imaging drivers};
   # APIs defined in this module:
 
   # Get engine version
-  my $ver = OpenGL::Image::THIS_MODULE::EngineVersion();
+  my $ver = OpenGL::Modern::Image::THIS_MODULE::EngineVersion();
 
   # Get engine description
-  my $desc = OpenGL::Image::ENGINE_MODULE::EngineDescription();
+  my $desc = OpenGL::Modern::Image::ENGINE_MODULE::EngineDescription();
 
 
   ##########
@@ -144,7 +144,7 @@ sub new {
     my $this = shift;
     my $class = ref( $this ) || $this;
 
-    my $self = OpenGL::Image::Common->new( @_ );
+    my $self = OpenGL::Modern::Image::Common->new( @_ );
     return undef if ( !$self );
     bless( $self, $class );
 
