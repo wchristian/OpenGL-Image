@@ -81,7 +81,7 @@ $t->ok( "Instantiated OpenGL::Array" );
 
 #6 Test image object instantiation
 my $tga = OpenGL::Modern::Image->new( width => $width, height => $height );
-$t->bail( "Unable to instantiate OpenGL::Modern::Image" ) if ( !$tga );
+$t->bail( "Unable to instantiate OpenGL::Modern::Image: $@" ) if ( !$tga );
 $t->ok( "Instantiated OpenGL::Modern::Image(width\=>$width,height\=>$height)" );
 
 #7 Test Get/Set Pixel

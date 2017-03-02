@@ -140,7 +140,7 @@ sub NewEngine {
     my $exec = qq
   {
     use $module;
-    \$obj = new $module\(\%params);
+    \$obj = $module->new(\%params);
   };
     eval( $exec );
 
