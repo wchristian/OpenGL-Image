@@ -1,5 +1,6 @@
 Changes
 COPYRIGHT
+cpanfile
 eg/hex_tile.pl
 lib/OpenGL/Modern/Image.pm
 lib/OpenGL/Modern/Image/Common.pm
