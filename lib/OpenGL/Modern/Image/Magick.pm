@@ -14,6 +14,7 @@ use Carp;
 use vars qw($VERSION $DESCRIPTION @ISA);
 use OpenGL::Modern::Image::Common;
 use OpenGL::Modern qw( GL_RGBA16 GL_UNSIGNED_SHORT GL_RGBA8 GL_RGBA GL_BGRA GL_UNSIGNED_BYTE );
+use OpenGL::Array;
 
 require Exporter;
 $VERSION     = '1.02';
